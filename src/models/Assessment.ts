@@ -13,9 +13,9 @@ export interface ILocalizedQuestionContent {
   scenario: string;
   simplifiedScenario?: string;
   mcqOptions: IMcqOption[];
-  writtenPrompt: string;
+  writtenPrompt?: string;
   simplifiedPrompt?: string;
-  writtenPlaceholder: string;
+  writtenPlaceholder?: string;
 }
 
 export interface IDualPaneQuestion {
@@ -29,7 +29,7 @@ export interface IDualPaneQuestion {
   en: ILocalizedQuestionContent;
   hi: ILocalizedQuestionContent;
   kn: ILocalizedQuestionContent;
-  idealEvidenceCriteria: string;
+  idealEvidenceCriteria?: string;
 }
 
 export interface IAssessment extends Document {
@@ -49,21 +49,21 @@ const McqOptionSchema = new Schema<IMcqOption>(
     id: { type: String, required: true },
     text: { type: String, required: true },
     simplifiedText: { type: String, default: '' },
-    points: { type: Number, required: true },
-    rationaleCategory: { type: String, required: true },
+    points: { type: Number, default: 0 },
+    rationaleCategory: { type: String, default: '' },
   },
   { _id: false }
 );
 
 const LocalizedContentSchema = new Schema<ILocalizedQuestionContent>(
   {
-    title: { type: String, required: true },
-    scenario: { type: String, required: true },
+    title: { type: String, default: '' },
+    scenario: { type: String, default: '' },
     simplifiedScenario: { type: String, default: '' },
     mcqOptions: [McqOptionSchema],
-    writtenPrompt: { type: String, required: true },
+    writtenPrompt: { type: String, default: '' },
     simplifiedPrompt: { type: String, default: '' },
-    writtenPlaceholder: { type: String, required: true },
+    writtenPlaceholder: { type: String, default: '' },
   },
   { _id: false }
 );
@@ -74,13 +74,13 @@ const DualPaneQuestionSchema = new Schema<IDualPaneQuestion>(
     competencyKey: { type: String, required: true },
     competencyName: { type: String, required: true },
     questionType: { type: String, default: 'mcq_dual' },
-    category: { type: String },
-    subCategory: { type: String },
+    category: { type: String, default: '' },
+    subCategory: { type: String, default: '' },
     isOptionalExplanation: { type: Boolean, default: false },
     en: { type: LocalizedContentSchema, required: true },
     hi: { type: LocalizedContentSchema, required: true },
     kn: { type: LocalizedContentSchema, required: true },
-    idealEvidenceCriteria: { type: String, required: true },
+    idealEvidenceCriteria: { type: String, default: '' },
   },
   { _id: false }
 );

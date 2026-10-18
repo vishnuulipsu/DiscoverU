@@ -69,7 +69,7 @@ export default function HomePage() {
                   DiscoverU
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-[var(--ulipsu-amber-hover)] tracking-wide uppercase">
-                  Future of Work & Enterprise Productivity
+                  Make Your Next Move Count
                 </span>
               </div>
             </div>
@@ -77,7 +77,7 @@ export default function HomePage() {
             {/* Ulipsu-style pill badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--ulipsu-amber-light)] text-[var(--ulipsu-amber-hover)] text-xs sm:text-sm font-bold mb-6 border border-[var(--ulipsu-amber)]/30 shadow-xs">
               <Sparkles className="w-4 h-4 text-[var(--ulipsu-amber)]" />
-              <span>Future of Work & Enterprise Productivity</span>
+              <span>Make Your Next Move Count</span>
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-extrabold text-[var(--ulipsu-indigo)] tracking-tight leading-tight max-w-4xl mx-auto">

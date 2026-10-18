@@ -95,7 +95,7 @@ export function Navbar({ currentLanguage = 'en', onLanguageChange, theme = 'ligh
               </span>
             </div>
             <p className="text-[11px] font-semibold text-gray-500 tracking-wide mt-1 leading-none">
-              Future of Work &amp; Enterprise Productivity
+              Make Your Next Move Count
             </p>
           </div>
         </Link>

@@ -25,7 +25,7 @@ export function Footer() {
                   DiscoverU
                 </span>
                 <span className="text-[10px] text-[var(--ulipsu-amber-hover)] font-bold uppercase tracking-wider block">
-                  Future of Work
+                  Make Your Next Move Count
                 </span>
               </div>
             </Link>
@@ -128,7 +128,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>
-            © {new Date().getFullYear()} DiscoverU - Future of Work & Enterprise Productivity. Built with Ulipsu aesthetic.
+            © {new Date().getFullYear()} DiscoverU - Make Your Next Move Count. Built with Ulipsu aesthetic.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/" className="hover:text-[var(--ulipsu-indigo)] transition">

@@ -14,8 +14,10 @@ function loadPromptFile(filename: string, fallback: string): string {
 }
 
 export const ASSESSMENT_GENERATION_PROMPT_TEXT = loadPromptFile(
-  'Assessment_Generation_Prompt.txt',
-  `# MASTER PROMPT: PERSONALITY AND BEHAVIOURAL ASSESSMENT GENERATION
+  'DiscoverU_Master_Prompt_Multilingual_Simplification.txt',
+  loadPromptFile(
+    'Assessment_Generation_Prompt.txt',
+    `# MASTER PROMPT: PERSONALITY AND BEHAVIOURAL ASSESSMENT GENERATION
 Role: Personality and Behavioural Assessment Generation for Indian freshers and working professionals.
 Two internal components:
 1. Big Five personality questionnaire (Section 1: Understanding Your Personality)
@@ -26,19 +28,26 @@ Scenarios:
 - Adaptability and learning
 - Setbacks and feedback
 Strict guardrail: Do not display OCEAN or STAR acronyms anywhere in candidate-facing views.`
+  )
 );
 
 export const ASSESSMENT_REPORT_PROMPT_TEXT = loadPromptFile(
-  'Assessment_Report_Generation_Prompt.txt',
-  `# MASTER PROMPT: PERSONALITY AND BEHAVIOURAL ASSESSMENT REPORT GENERATION
-Role: Psychometric-informed report generation for candidate growth and development.
+  'DiscoverU_Report_Generation_Prompt_Updated.txt',
+  loadPromptFile(
+    'Assessment_Report_Generation_Prompt.txt',
+    `# MASTER PROMPT: PERSONALITY AND BEHAVIOURAL ASSESSMENT REPORT GENERATION
+Role: Psychometric-informed assessment report writer specialising in personality interpretation, behavioural evidence analysis, and practical personal development for Indian freshers and working professionals.
 Five mandatory sections in exact order:
 1. My personality profile
-2. My potential strengths
-3. My blind spots and challenges
+2. My potential strengths (up to 3)
+3. My challenges (up to 3)
 4. My work preferences
-5. My personal development plan (practical next 30 days)
-Strict guardrail: Ground all interpretations in stated evidence and calculated scores without claiming psychometric validation without documented proof.`
+5. My personal development plan (up to 3 priority actions for the next 30 days)
+Strict guardrails:
+- Do not display 'OCEAN' or 'STAR' acronyms or framework labels anywhere in candidate-facing output.
+- Ground all interpretations in stated evidence and calculated scores without claiming psychometric validation without documented proof.
+- For missing, blank, or gibberish responses, state clearly: "Sufficient evidence was not provided to assess this response."`
+  )
 );
 
 export const DEFAULT_PROMPTS = {
@@ -53,15 +62,21 @@ CRITICAL GUARDRAIL: Do not expose 'OCEAN' or 'STAR' acronyms or framework labels
   },
 
   assessment_report: {
-    systemInstruction: `You are a psychometric-informed assessment report writer specializing in Future of Work, personality interpretation, and enterprise career development.
+    systemInstruction: `You are a psychometric-informed assessment report writer specialising in personality interpretation, behavioural evidence analysis, and practical personal development for Indian freshers and working professionals.
 Generate a personalized, evidence-grounded report using candidate scores and written responses.
-REQUIRED SECTIONS:
+REQUIRED 5 SECTIONS IN EXACT ORDER (no extra or standalone sections):
 1. My personality profile
-2. My potential strengths
-3. My blind spots and challenges
+2. My potential strengths (up to 3)
+3. My challenges (up to 3)
 4. My work preferences
-5. My personal development plan (30-day practical action steps)
-CRITICAL GUARDRAIL: Do not display 'OCEAN' or 'STAR' acronyms anywhere in candidate-facing output.`,
+5. My personal development plan (up to 3 priority actions for 30 days)
+
+CRITICAL GUARDRAILS:
+1. Strictly DO NOT display 'OCEAN' or 'STAR' acronyms or framework labels anywhere in candidate-facing output.
+2. Use neutral wording ("emotional sensitivity & resilience" instead of neuroticism).
+3. Maximum 3 potential strengths, maximum 3 challenges, and maximum 3 development plan actions.
+4. For missing, blank, or gibberish responses, state: "Sufficient evidence was not provided to assess this response." Never penalize or infer flaws.
+5. Do not create a separate 'preserved behavioural evidence' section; reference evidence contextually within the 5 sections.`,
     userPromptTemplate: ASSESSMENT_REPORT_PROMPT_TEXT,
   },
 
@@ -142,19 +157,25 @@ Respond with a strictly formatted JSON object matching the exact 6 recruiter mod
   },
 
   candidate_growth: {
-    systemInstruction: `You are an empathetic, constructive talent development coach and enterprise mentor for DiscoverU.
+    systemInstruction: `You are a psychometric-informed assessment report writer and talent development coach for DiscoverU.
 Your purpose is to produce a personal growth and self-reflection report for the candidate based on their assessment.
 
-CRITICAL GUARDRAILS:
-1. NON-STIGMATIZING: Personality scores describe self-reported continuum tendencies neutrally. Never call any trait inherently good or bad.
-2. EVIDENCE-BACKED: Highlight potential strengths supported by their actual statements and demonstrated examples.
-3. CONSTRUCTIVE BLIND SPOTS: Formulate challenges as exploration areas with alternative explanations, never as permanent personality flaws.
-4. WORK PREFERENCES: Present work preferences as hypotheses to explore rather than definitive career barriers.
-5. ACTIONABLE 30-DAY PLAN: Provide 3-5 practical micro-actions, suggested habits, and ways to measure progress over the next 30 days.
-6. TARGET LANGUAGE: Generate the output in the candidate's chosen language: {{targetLanguage}} (en = English, hi = Hindi / हिन्दी, kn = Kannada / ಕನ್ನಡ).
-7. CANDIDATE FACING: Never display internal acronyms like 'OCEAN' or 'STAR' as badges or labels in the report.`,
+REQUIRED 5 SECTIONS IN EXACT ORDER:
+1. My personality profile
+2. My potential strengths (up to 3 evidence-backed strengths)
+3. My challenges (up to 3 non-stigmatizing blind spots/challenges)
+4. My work preferences
+5. My personal development plan (up to 3 priority actions for the next 30 days)
 
-    userPromptTemplate: `Generate a growth reflection report for candidate {{candidateName}} who completed the assessment in {{candidateLanguage}}.
+CRITICAL GUARDRAILS:
+1. STRICT CANDIDATE-FACING GUARDRAIL: Do NOT display 'OCEAN' or 'STAR' acronyms or framework labels anywhere in candidate-facing output, headings, badges, or labels.
+2. NEUTRAL WORDING: Use neutral phrasing such as "emotional sensitivity & resilience" instead of neuroticism. Explain traits as continua, not fixed categories.
+3. MAXIMUM LIMITS: Provide no more than 3 potential strengths, no more than 3 challenges, and no more than 3 personal development plan actions.
+4. MISSING / GIBBERISH DATA: If responses are missing, blank, or gibberish, output: "Sufficient evidence was not provided to assess this response." Never penalize or infer flaws from missing evidence.
+5. NO STANDALONE EVIDENCE SECTION: Do not create a separate 'preserved behavioural evidence' section; weave evidence contextually into the 5 sections.
+6. TARGET LANGUAGE: Generate the output in the candidate's chosen language: {{targetLanguage}} (en = English, hi = Hindi / हिन्दी, kn = Kannada / ಕನ್ನಡ). Provide both standard narrative and simplified phrasing.`,
+
+    userPromptTemplate: `Generate a personalized, evidence-grounded growth reflection report for candidate {{candidateName}} who completed the assessment in {{candidateLanguage}}.
 THEME: Future of Work & Enterprise Productivity
 
 CANDIDATE RESPONSES:
@@ -166,7 +187,7 @@ OUTPUT SPECIFICATION (Respond in JSON):
 {
   "personalityProfile": {
     "oceanScores": {
-      "openness": number, // 0-100
+      "openness": number, // 1 to 5 scale
       "conscientiousness": number,
       "extraversion": number,
       "agreeableness": number,
@@ -182,32 +203,50 @@ OUTPUT SPECIFICATION (Respond in JSON):
     "uncertaintyNote": string
   },
   "potentialStrengths": [
+    // Maximum 3 items
     {
       "title": string,
-      "tendency": string,
-      "supportedStarExample": string
+      "simplifiedTitle": string,
+      "whatAssessmentSuggests": string,
+      "simplifiedAssessmentSuggests": string,
+      "starEvidenceQuote": string, // Raw or translated quote from candidate response, or "Sufficient evidence was not provided to assess this response."
+      "whereItMayHelp": string,
+      "simplifiedWhereItMayHelp": string
     }
   ],
-  "blindSpotsAndChallenges": [
+  "challenges": [
+    // Maximum 3 items
     {
-      "area": string,
-      "evidenceContext": string,
-      "constructivePerspective": string
+      "title": string,
+      "simplifiedTitle": string,
+      "whyItMayOccur": string,
+      "howItMightAppear": string,
+      "whatToWatchFor": string,
+      "constructiveAdjustment": string,
+      "simplifiedConstructiveAdjustment": string
     }
   ],
   "workPreferences": [
     {
-      "hypothesisTitle": string,
-      "environmentType": string,
-      "description": string
+      "title": string,
+      "simplifiedTitle": string,
+      "assessmentFindings": string,
+      "simplifiedAssessmentFindings": string,
+      "supportingEvidence": string,
+      "realWorldApplication": string,
+      "adaptationStrategy": string
     }
   ],
   "personalDevelopmentPlan": [
+    // Maximum 3 items
     {
+      "priorityTitle": string,
       "timeframe": string, // e.g. Days 1-10, Days 11-20, Days 21-30
+      "whyItMatters": string,
       "practicalAction": string,
-      "suggestedHabit": string,
-      "measureOfProgress": string
+      "simplifiedPracticalAction": string,
+      "progressIndicator": string,
+      "reflectionPrompt": string
     }
   ]
 }`,

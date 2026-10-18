@@ -89,26 +89,41 @@ export interface ICandidateGrowthReport {
     }>;
   };
 
-  // Section 2: My potential strengths
+  // Section 2: My potential strengths (up to 3)
   potentialStrengths: Array<{
     title: string;
+    simplifiedTitle?: string;
     tendency?: string;
     supportedStarExample?: string;
     whatAssessmentSuggests?: string;
+    simplifiedAssessmentSuggests?: string;
     starEvidenceQuote?: string;
+    evidenceQuote?: string;
     whereItMayHelp?: string;
+    simplifiedWhereItMayHelp?: string;
   }>;
 
-  // Section 3: My blind spots and challenges
-  blindSpotsAndChallenges: Array<{
-    area?: string;
-    evidenceContext?: string;
-    constructivePerspective?: string;
-    title?: string;
+  // Section 3: My challenges (up to 3)
+  challenges?: Array<{
+    title: string;
+    simplifiedTitle?: string;
     whyItMayOccur?: string;
     howItMightAppear?: string;
     whatToWatchFor?: string;
     constructiveAdjustment?: string;
+    simplifiedConstructiveAdjustment?: string;
+  }>;
+  blindSpotsAndChallenges?: Array<{
+    area?: string;
+    evidenceContext?: string;
+    constructivePerspective?: string;
+    title?: string;
+    simplifiedTitle?: string;
+    whyItMayOccur?: string;
+    howItMightAppear?: string;
+    whatToWatchFor?: string;
+    constructiveAdjustment?: string;
+    simplifiedConstructiveAdjustment?: string;
   }>;
 
   // Section 4: My work preferences
@@ -117,19 +132,24 @@ export interface ICandidateGrowthReport {
     environmentType?: string;
     description?: string;
     title?: string;
+    simplifiedTitle?: string;
     assessmentFindings?: string;
+    simplifiedAssessmentFindings?: string;
     supportingEvidence?: string;
     realWorldApplication?: string;
     adaptationStrategy?: string;
+    simplifiedAdaptationStrategy?: string;
   }>;
 
-  // Section 5: My personal development plan (30-day practical actions)
+  // Section 5: My personal development plan (up to 3 priority actions for 30 days)
   personalDevelopmentPlan: Array<{
     timeframe?: string;
     suggestedHabit?: string;
     priorityTitle?: string;
+    simplifiedTitle?: string;
     whyItMatters?: string;
     practicalAction: string;
+    simplifiedPracticalAction?: string;
     timeline?: string;
     progressIndicator?: string;
     measureOfProgress?: string;

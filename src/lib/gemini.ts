@@ -129,6 +129,12 @@ export async function runGeminiEvaluation(
         decisionSupportAndFairness: rawRecruiter?.decisionSupportAndFairness || grounded.recruiterView.decisionSupportAndFairness,
       };
 
+      const challengesList = Array.isArray(rawCandidate?.challenges) && rawCandidate.challenges.length > 0
+        ? rawCandidate.challenges.slice(0, 3)
+        : Array.isArray(rawCandidate?.blindSpotsAndChallenges) && rawCandidate.blindSpotsAndChallenges.length > 0
+        ? rawCandidate.blindSpotsAndChallenges.slice(0, 3)
+        : grounded.candidateView.challenges || grounded.candidateView.blindSpotsAndChallenges;
+
       const candidateView: ICandidateGrowthReport = {
         language: input.candidateLanguage,
         scoringIntegrity: rawCandidate?.scoringIntegrity || {
@@ -141,18 +147,16 @@ export async function runGeminiEvaluation(
           ? rawCandidate.personalityProfile
           : grounded.candidateView.personalityProfile,
         potentialStrengths: Array.isArray(rawCandidate?.potentialStrengths) && rawCandidate.potentialStrengths.length > 0
-          ? rawCandidate.potentialStrengths
-          : grounded.candidateView.potentialStrengths,
-        blindSpotsAndChallenges: Array.isArray(rawCandidate?.blindSpotsAndChallenges) && rawCandidate.blindSpotsAndChallenges.length > 0
-          ? rawCandidate.blindSpotsAndChallenges
-          : grounded.candidateView.blindSpotsAndChallenges,
+          ? rawCandidate.potentialStrengths.slice(0, 3)
+          : grounded.candidateView.potentialStrengths.slice(0, 3),
+        challenges: challengesList,
+        blindSpotsAndChallenges: challengesList,
         workPreferences: Array.isArray(rawCandidate?.workPreferences) && rawCandidate.workPreferences.length > 0
           ? rawCandidate.workPreferences
           : grounded.candidateView.workPreferences,
         personalDevelopmentPlan: Array.isArray(rawCandidate?.personalDevelopmentPlan) && rawCandidate.personalDevelopmentPlan.length > 0
-          ? rawCandidate.personalDevelopmentPlan
-          : grounded.candidateView.personalDevelopmentPlan,
-        preservedStarEvidence: rawCandidate?.preservedStarEvidence || grounded.candidateView.preservedStarEvidence,
+          ? rawCandidate.personalDevelopmentPlan.slice(0, 3)
+          : grounded.candidateView.personalDevelopmentPlan.slice(0, 3),
       };
 
       return {
@@ -348,6 +352,27 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
           input.answers[1]?.writtenRationale || 'Consistently articulated collaborative alignment.',
       },
     ],
+    challenges: [
+      {
+        title: lang === 'hi' ? 'अस्पष्टता में तेजी से निर्णय' : lang === 'kn' ? 'ಅನಿಶ್ಚಿತತೆಯಲ್ಲಿ ತೀರ್ಮಾನ' : 'Decision Pacing in Low-Information Settings',
+        simplifiedTitle: lang === 'hi' ? 'कम जानकारी में त्वरित निर्णय लेना' : lang === 'kn' ? 'ಸ್ವಲ್ಪ ಮಾಹಿತಿಯಿರುವಾಗ ಬೇಗ ತೀರ್ಮಾನಿಸುವುದು' : 'Making Decisions with Limited Information',
+        whyItMayOccur: lang === 'hi' ? 'विस्तृत सत्यापन और गलतियों से बचने की प्रबल इच्छा।' : lang === 'kn' ? 'ತಪ್ಪುಗಳನ್ನು ತಪ್ಪಿಸುವ ತೀವ್ರ ಆಸಕ್ತಿ.' : 'A strong desire to avoid rework and ensure accuracy.',
+        howItMightAppear: lang === 'hi' ? 'जब तक पूरी जानकारी न मिले, तब तक दिशा बदलने में संकोच होना।' : lang === 'kn' ? 'ಪೂರ್ಣ ಮಾಹಿತಿ ಸಿಗುವವರೆಗೂ ಮುಂದೂಡುವ ಸಾಧ್ಯತೆ.' : 'Hesitating to change direction until complete information is available.',
+        whatToWatchFor: lang === 'hi' ? 'तेजी से बदलते प्रोजेक्ट्स में विश्लेषण में बहुत अधिक समय लगना।' : lang === 'kn' ? 'ವೇಗವಾಗಿ ಬದಲಾಗುವ ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ವಿಶ್ಲೇಷಣೆಗೆ ಹೆಚ್ಚು ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುವುದು.' : 'Over-analyzing reversible tactical choices during initial phases.',
+        constructiveAdjustment:
+          lang === 'hi'
+            ? 'यह सतर्कता गलतियों से बचाती है, पर तेजी से बदलते माहौल में परिवर्तनीय निर्णयों को तेजी से लेना गति बढ़ाता है।'
+            : lang === 'kn'
+            ? 'ಈ ಎಚ್ಚರಿಕೆಯು ತಪ್ಪುಗಳನ್ನು ತಡೆಯುತ್ತದೆ, ಆದರೆ ಬದಲಾಗುತ್ತಿರುವ ಸಂದರ್ಭದಲ್ಲಿ ಚುರುಕಾದ ತೀರ್ಮಾನಗಳು ಸಹಕಾರಿ.'
+            : 'This high diligence prevents avoidable rework, but in fast-moving early discovery phases, taking reversible two-way door decisions can boost velocity.',
+        simplifiedConstructiveAdjustment:
+          lang === 'hi'
+            ? 'जहाँ निर्णय आसानी से बदले जा सकते हों, वहाँ 70% जानकारी के साथ आगे बढ़ें।'
+            : lang === 'kn'
+            ? 'ಸುಲಭವಾಗಿ ಬದಲಾಯಿಸಬಹುದಾದ ತೀರ್ಮಾನಗಳಿಗೆ ಶೀಘ್ರ ಹೆಜ್ಜೆ ಇಡಿ.'
+            : 'For choices that can be easily changed later, move forward once you have about 70% of the needed details.',
+      },
+    ],
     blindSpotsAndChallenges: [
       {
         title: lang === 'hi' ? 'अस्पष्टता में तेजी से निर्णय' : lang === 'kn' ? 'ಅನಿಶ್ಚಿತತೆಯಲ್ಲಿ ತೀರ್ಮಾನ' : 'Decision Pacing in Low-Information Settings',
@@ -361,51 +386,116 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
     workPreferences: [
       {
         title: 'High-Ownership Autonomous Teams',
+        simplifiedTitle: lang === 'hi' ? 'स्वायत्त एवं जिम्मेदार टीम' : lang === 'kn' ? 'ಸ್ವತಂತ್ರ ಮತ್ತು ಜವಾಬ್ದಾರಿಯುತ ತಂಡ' : 'Autonomous Teams with Clear Goals',
         hypothesisTitle: 'High-Ownership Autonomous Teams',
         environmentType: 'Decentralized Collaborative Pods',
         description:
           'Thrives in environments with clear objective metrics (OKRs), psychological safety, and direct ownership of outcomes.',
+        assessmentFindings:
+          lang === 'hi'
+            ? 'मूल्यांकन से पता चलता है कि आप स्वतंत्र निर्णय लेने और परिणामों की सीधी जिम्मेदारी लेने पर बेहतरीन काम करते हैं।'
+            : lang === 'kn'
+            ? 'ಸ್ಪಷ್ಟ ಗುರಿಗಳು ಮತ್ತು ಸ್ವತಂತ್ರ ಜವಾಬ್ದಾರಿ ಇರುವ ವಾತಾವರಣದಲ್ಲಿ ನೀವು ಅತ್ಯುತ್ತಮವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತೀರಿ.'
+            : 'The assessment suggests you work best with clear objective goals and direct ownership over your deliverables.',
+        simplifiedAssessmentFindings:
+          lang === 'hi'
+            ? 'आपको स्वतंत्र काम करने और सीधी जिम्मेदारी मिलने पर अच्छा लगता है।'
+            : lang === 'kn'
+            ? 'ಸ್ವತಂತ್ರವಾಗಿ ಕೆಲಸ ಮಾಡಿ ಗುರಿ ತಲುಪಲು ನೀವು ಬಯಸುತ್ತೀರಿ.'
+            : 'You thrive when you have freedom to make decisions and clear targets to hit.',
+        adaptationStrategy:
+          lang === 'hi'
+            ? 'अस्पष्ट दिशा-निर्देशों में स्वयं 3 प्राथमिकताएँ परिभाषित कर हितधारकों से अनुमोदन लें।'
+            : lang === 'kn'
+            ? 'ಅಸ್ಪಷ್ಟತೆ ಇದ್ದಾಗ ಮುಂಚಿತವಾಗಿ ನಿಮ್ಮ ಯೋಜನೆಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ.'
+            : 'In ambiguous settings, propose a 3-bullet priority list early to align stakeholders autonomously.',
       },
       {
         title: 'Structured Knowledge Sharing',
+        simplifiedTitle: lang === 'hi' ? 'संरचित ज्ञान साझाकरण' : lang === 'kn' ? 'ಜ್ಞಾನ ವಿನಿಮಯ' : 'Knowledge Sharing & Learning',
         hypothesisTitle: 'Structured Knowledge Sharing',
         environmentType: 'Continuous Learning Cultures',
         description:
           'Excels where peer code reviews, architectural RFCs, and post-mortems are treated as learning rituals.',
+        assessmentFindings:
+          lang === 'hi'
+            ? 'जहाँ सहकर्मियों के साथ नियमित समीक्षा और पारदर्शी चर्चा हो, वहाँ आपका प्रदर्शन और निखरता है।'
+            : lang === 'kn'
+            ? 'ನಿರಂತರ ಕಲಿಕೆ ಮತ್ತು ತೆರೆದ ಚರ್ಚೆ ಇರುವ ತಂಡಗಳಲ್ಲಿ ನಿಮ್ಮ ಕ್ಷಮತೆ ಹೆಚ್ಚುತ್ತದೆ.'
+            : 'You thrive in environments that treat peer feedback and transparent reviews as regular learning habits.',
+        simplifiedAssessmentFindings:
+          lang === 'hi'
+            ? 'सीखने और एक-दूसरे के सुझाव साझा करने वाली टीमें आपको पसंद हैं।'
+            : lang === 'kn'
+            ? 'ಒಟ್ಟಾಗಿ ಕಲಿಯುವ ಮತ್ತು ಸಲಹೆ ನೀಡುವ ವಾತಾವರಣ ನಿಮಗೆ ಅನುಕೂಲ.'
+            : 'You do best in teams that encourage continuous learning and open sharing.',
+        adaptationStrategy:
+          lang === 'hi'
+            ? 'सप्ताह में एक बार मुख्य सीखों और सुधारों को टीम दस्तावेज़ में संक्षेप में लिखें।'
+            : lang === 'kn'
+            ? 'ವಾರಕ್ಕೊಮ್ಮೆ ಕಲಿತ ಪ್ರಮುಖ ವಿಷಯಗಳನ್ನು ದಾಖಲಿಸಿ.'
+            : 'Document key architectural insights and learnings weekly for collective benefit.',
       },
     ],
     personalDevelopmentPlan: [
       {
         timeframe: 'Days 1–10',
+        timeline: 'Days 1–10',
+        priorityTitle: lang === 'hi' ? 'त्वरित निर्णय अभ्यास' : lang === 'kn' ? 'ತ್ವರಿತ ನಿರ್ಧಾರ ಅಭ್ಯಾಸ' : 'Reversible Decision Velocity',
+        simplifiedTitle: lang === 'hi' ? 'जल्दी निर्णय लेने का अभ्यास' : lang === 'kn' ? 'ಬೇಗನೆ ತೀರ್ಮಾನಿಸುವುದು' : 'Faster Decision-Making',
         practicalAction:
           lang === 'hi'
             ? 'दो-तरफ़ा (Reversible) निर्णयों के लिए 70% जानकारी नियम का अभ्यास करें।'
             : lang === 'kn'
             ? 'ತ್ವರಿತ ನಿರ್ಧಾರಗಳಿಗಾಗಿ 70% ನಿಯಮವನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ.'
             : 'Practice the "70% Information Rule" for reversible decisions to accelerate tactical velocity.',
+        simplifiedPracticalAction:
+          lang === 'hi'
+            ? 'छोटे और आसानी से बदले जाने वाले निर्णयों में तुरंत आगे बढ़ें।'
+            : lang === 'kn'
+            ? 'ಸುಲಭ ನಿರ್ಧಾರಗಳನ್ನು ಬೇಗನೆ ಕೈಗೊಳ್ಳಿ.'
+            : 'For small choices that can be adjusted later, decide as soon as you have enough clarity.',
         suggestedHabit: 'Document a 3-bullet decision hypothesis before asking for confirmation.',
         measureOfProgress: 'Cut average decision latency on reversible micro-tasks by 25%.',
       },
       {
         timeframe: 'Days 11–20',
+        timeline: 'Days 11–20',
+        priorityTitle: lang === 'hi' ? 'पूर्व-जोखिम विश्लेषण' : lang === 'kn' ? 'ಅಪಾಯ ವಿಶ್ಲೇಷಣೆ' : 'Collaborative Pre-Mortem Check-ins',
+        simplifiedTitle: lang === 'hi' ? 'जोखिमों की पहले से पहचान' : lang === 'kn' ? 'ಮುಂಚಿತ ಅಪಾಯ ಪರಿಶೀಲನೆ' : 'Spotting Risks Ahead of Time',
         practicalAction:
           lang === 'hi'
             ? 'जटिल प्रोजेक्ट्स में संभावित जोखिमों के लिए एक त्वरित सिमुलेशन सत्र आयोजित करें।'
             : lang === 'kn'
             ? 'ಯೋಜನೆಯ ಸಂಭಾವ್ಯ ಅಪಾಯಗಳ ಬಗ್ಗೆ ಮುಂಚಿತವಾಗಿ ಚರ್ಚಿಸಿ.'
             : 'Run a 15-minute "pre-mortem" with a colleague on an upcoming high-uncertainty deliverable.',
+        simplifiedPracticalAction:
+          lang === 'hi'
+            ? 'काम शुरू करने से पहले साथी के साथ 10 मिनट बैठकर सोचें कि क्या अड़चन आ सकती है।'
+            : lang === 'kn'
+            ? 'ಕೆಲಸ ಪ್ರಾರಂಭಿಸುವ ಮುನ್ನ ಸಹೋದ್ಯೋಗಿಯೊಂದಿಗೆ ಸಂಭವನೀಯ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.'
+            : 'Spend 10 minutes with a teammate before starting a task to identify what might go wrong.',
         suggestedHabit: 'Weekly risk assessment check-in at the beginning of each sprint.',
         measureOfProgress: 'Zero unexpected blockers emerging in late-stage implementation.',
       },
       {
         timeframe: 'Days 21–30',
+        timeline: 'Days 21–30',
+        priorityTitle: lang === 'hi' ? 'मापने योग्य परिणाम लॉग' : lang === 'kn' ? 'ಫಲಿತಾಂಶ ದಾಖಲಾತಿ' : 'Quantifiable Outcome Documentation',
+        simplifiedTitle: lang === 'hi' ? 'अपनी उपलब्धियों को आँकड़ों में दर्ज करें' : lang === 'kn' ? 'ಸಾಧನೆಗಳನ್ನು ದಾಖಲಿಸಿ' : 'Tracking Your Concrete Achievements',
         practicalAction:
           lang === 'hi'
-            ? 'सफलता और सुधारों के सटीक आँकड़े (STAR Results) दर्ज करने की आदत बनाएँ।'
+            ? 'सफलता और सुधारों के सटीक परिणामी आँकड़े दर्ज करने की आदत बनाएँ।'
             : lang === 'kn'
             ? 'ನಿಮ್ಮ ಸಾಧನೆಗಳ ಪರಿಮಾಣಾತ್ಮಕ ಅಳತೆಗಳನ್ನು ದಾಖಲಿಸಿ.'
-            : 'Maintain an achievement log framing all completed milestones in quantifiable STAR metrics.',
-        suggestedHabit: 'Friday 10-minute reflection log (Situation, Task, Action, Metric Result).',
+            : 'Maintain an achievement log framing all completed milestones in quantifiable outcome metrics.',
+        simplifiedPracticalAction:
+          lang === 'hi'
+            ? 'हर शुक्रवार अपनी पूरी की गई मुख्य सफलता और उसके प्रभाव को 2 पंक्तियों में नोट करें।'
+            : lang === 'kn'
+            ? 'ಪ್ರತಿ ಶುಕ್ರವಾರ ನಿಮ್ಮ ವಾರದ ಮುಖ್ಯ ಕೆಲಸ ಮತ್ತು ಅದರ ಫಲಿತಾಂಶವನ್ನು ಬರೆದಿಡಿ.'
+            : 'Every Friday, write down 2 lines highlighting what you achieved and its measurable impact.',
+        suggestedHabit: 'Friday 10-minute reflection log (Challenge, Action Taken, Measurable Result).',
         measureOfProgress: 'A personal repository of 4 well-documented impact case studies.',
       },
     ],

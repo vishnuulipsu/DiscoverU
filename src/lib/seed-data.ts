@@ -280,7 +280,7 @@ export const NANDINI_GROWTH_REPORT: ICandidateGrowthReport = {
         tradeOffs: 'Uncompromising quality control, but risks interpersonal friction in collaborative settings if unbuffered.',
       },
       {
-        trait: 'Emotional Stability (Neuroticism)',
+        trait: 'Emotional Stability & Resilience',
         score: 3.5,
         maxScore: 5.0,
         supportedInterpretation: 'Generally steady under pressure, mindful of risk factors.',
@@ -313,6 +313,22 @@ export const NANDINI_GROWTH_REPORT: ICandidateGrowthReport = {
       whatAssessmentSuggests: 'Views evaluative critiques as growth catalysts, proactively adopting corrective habits.',
       starEvidenceQuote: 'My work did not improve as much as it could have, and some of the same issues remained. Looking back, I realised that pu...',
       whereItMayHelp: 'Rapid technical onboarding, adopting cutting-edge engineering standards, and long-term career growth.',
+    },
+  ],
+  challenges: [
+    {
+      title: 'Potential Hesitation to Voice Early Dissent',
+      whyItMayOccur: 'High focus on harmony or deferring to perceived authority during fast-paced reviews.',
+      howItMightAppear: 'Reluctance to interrupt momentum in design reviews when edge cases are spotted.',
+      whatToWatchFor: 'Silence during critical architectural calls followed by private offline concerns.',
+      constructiveAdjustment: 'Frame concern around risk management: "To protect our launch milestone, can we review two potential edge cases before finalizing?"',
+    },
+    {
+      title: 'Managing Time Constraints During Deep Problem Exploration',
+      whyItMayOccur: 'High diligence drives desire for exhaustive root-cause verification before delivering progress updates.',
+      howItMightAppear: 'Spending disproportionate time on low-probability corner cases.',
+      whatToWatchFor: 'Delaying status updates while chasing edge cases in isolation.',
+      constructiveAdjustment: 'Implement a strict 45-minute exploration timebox: "Timebox investigation to 45 mins, then post a 3-bullet progress summary to the team channel before continuing."',
     },
   ],
   blindSpotsAndChallenges: [
@@ -383,7 +399,7 @@ export const NANDINI_GROWTH_REPORT: ICandidateGrowthReport = {
       reflectionPrompt: 'Did timeboxing help me innovate without compromising the deadline?',
     },
     {
-      priorityTitle: 'Refine STAR Result Quantification',
+      priorityTitle: 'Refine Measurable Outcome Quantification',
       timeframe: 'Next 30 Days',
       timeline: 'Next 30 days',
       whyItMatters: 'Enhances self-advocacy and makes engineering achievements measurable to leadership.',
@@ -525,6 +541,22 @@ export const NANDINI_GROWTH_REPORT_HI: ICandidateGrowthReport = {
       whereItMayHelp: 'नई तकनीकों को तेजी से सीखने, कोड गुणवत्ता बढ़ाने और दीर्घकालिक करियर प्रगति में।',
     },
   ],
+  challenges: [
+    {
+      title: 'शुरुआती असहमति व्यक्त करने में संभावित संकोच',
+      whyItMayOccur: 'तेज गति की समीक्षाओं में सद्भाव बनाए रखने या सत्ता के प्रति सम्मान के कारण असहमति टालना।',
+      howItMightAppear: 'डिजाइन बैठकों में चुप रहना और बाद में निजी तौर पर चिंताओं को प्रकट करना।',
+      whatToWatchFor: 'महत्वपूर्ण वास्तुकला चर्चाओं में मौन रहना।',
+      constructiveAdjustment: 'जोखिम प्रबंधन के रूप में अपनी बात रखें: "लॉन्च की सुरक्षा के लिए, क्या हम अंतिम रूप देने से पहले दो संभावित अपवादों (edge cases) की समीक्षा कर सकते हैं?"',
+    },
+    {
+      title: 'गहन समस्या समाधान के दौरान समय सीमा प्रबंधन',
+      whyItMayOccur: 'पूरी तरह समस्या का समाधान खोजने की तीव्र इच्छा के कारण अंतरिम स्टेटस में देरी।',
+      howItMightAppear: 'कम संभावना वाले अपवादों पर बहुत अधिक समय लगाना।',
+      whatToWatchFor: 'गहरी खोज में उलझ जाने के कारण स्टैंडअप अपडेट समय सीमा से चूकना।',
+      constructiveAdjustment: '45 मिनट की सख्त समय-सीमा लागू करें: "गहन जांच को 45 मिनट तक सीमित रखें, फिर आगे बढ़ने से पहले टीम चैनल पर 3-बिंदु प्रगति सारांश साझा करें।"',
+    },
+  ],
   blindSpotsAndChallenges: [
     {
       title: 'शुरुआती असहमति व्यक्त करने में संभावित संकोच',
@@ -593,7 +625,7 @@ export const NANDINI_GROWTH_REPORT_HI: ICandidateGrowthReport = {
       reflectionPrompt: 'क्या समय-सीमा तय करने से मुझे समय सीमा से समझौता किए बिना नवाचार करने में मदद मिली?',
     },
     {
-      priorityTitle: 'STAR परिणाम परिमाणीकरण में सुधार',
+      priorityTitle: 'मापने योग्य परिणाम परिमाणीकरण में सुधार',
       timeframe: 'अगले 30 दिन',
       timeline: 'अगले 30 दिन',
       whyItMatters: 'मापने योग्य उपलब्धियों से व्यक्तिगत प्रभाव स्पष्ट होता है और नेतृत्व स्तर पर पहचान मिलती है।',
@@ -735,6 +767,22 @@ export const NANDINI_GROWTH_REPORT_KN: ICandidateGrowthReport = {
       whereItMayHelp: 'ಹೊಸ ತಂತ್ರಜ್ಞಾನಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಕಲಿಯಲು ಮತ್ತು ದೀರ್ಘಕಾಲೀನ ವೃತ್ತಿ ಬೆಳವಣಿಗೆಗೆ.',
     },
   ],
+  challenges: [
+    {
+      title: 'ಆರಂಭಿಕ ಹಂತದಲ್ಲಿ ಭಿನ್ನಾಭಿಪ್ರಾಯ ವ್ಯಕ್ತಪಡಿಸಲು ಹಿಂಜರಿಕೆ',
+      whyItMayOccur: 'ವೇಗದ ವಿಮರ್ಶೆಗಳಲ್ಲಿ ಸಾಮರಸ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು ಭಿನ್ನಾಭಿಪ್ರಾಯವನ್ನು ಮುಂದೂಡುವುದು.',
+      howItMightAppear: 'ವಿನ್ಯಾಸ ಸಭೆಗಳಲ್ಲಿ ಮೌನವಾಗಿರುವುದು ಮತ್ತು ನಂತರ ಖಾಸಗಿಯಾಗಿ ಕಳವಳಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳುವುದು.',
+      whatToWatchFor: 'ಪ್ರಮುಖ ವಾಸ್ತುಶಿಲ್ಪ ಸಭೆಗಳಲ್ಲಿ ಮೌನವಾಗಿರುವುದು.',
+      constructiveAdjustment: '"ನಮ್ಮ ಬಿಡುಗಡೆ ಮೈಲಿಗಲ್ಲನ್ನು ರಕ್ಷಿಸಲು, ಅಂತಿಮಗೊಳಿಸುವ ಮೊದಲು ನಾವು ಎರಡು ಸಂಭಾವ್ಯ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಶೀಲಿಸಬಹುದೇ?" ಎಂದು ಅಪಾಯ ನಿರ್ವಹಣೆಯ ರೂಪದಲ್ಲಿ ಪ್ರಸ್ತಾಪಿಸಿ.',
+    },
+    {
+      title: 'ಆಳವಾದ ಸಂಶೋಧನೆಯ ಸಂದರ್ಭದಲ್ಲಿ ಸಮಯದ ಮಿತಿಯನ್ನು ನಿರ್ವಹಿಸುವುದು',
+      whyItMayOccur: 'ದೋಷವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಪರಿಹರಿಸುವ ತೀವ್ರ ಬಯಕೆಯು ಮಧ್ಯಂತರ ಸ್ಥಿತಿಗತಿ ಹಂಚಿಕೆಯಲ್ಲಿ ವಿಳಂಬ ಉಂಟುಮಾಡುತ್ತದೆ.',
+      howItMightAppear: 'ಕಡಿಮೆ ಸಂಭವನೀಯತೆಯ ಅಂಚಿನ ಸಮಸ್ಯೆಗಳಿಗೆ ಅತಿಯಾದ ಸಮಯ ನೀಡುವುದು.',
+      whatToWatchFor: 'ಆಳವಾದ ಸಂಶೋಧನೆಯಲ್ಲಿ ಮುಳುಗಿ ದೈನಂದಿನ ಸ್ಟ್ಯಾಂಡ್‌ಅಪ್ ಗಡುವುಗಳನ್ನು ತಪ್ಪಿಸಿಕೊಳ್ಳುವುದು.',
+      constructiveAdjustment: '"ತನಿಖೆಯನ್ನು 45 ನಿಮಿಷಗಳಿಗೆ ಸೀಮಿತಗೊಳಿಸಿ, ನಂತರ ಮುಂದುವರಿಯುವ ಮೊದಲು ತಂಡದ ಚಾನಲ್‌ನಲ್ಲಿ 3 ಪ್ರಮುಖ ಅಂಶಗಳ ಸಾರಾಂಶವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ."',
+    },
+  ],
   blindSpotsAndChallenges: [
     {
       title: 'ಆರಂಭಿಕ ಹಂತದಲ್ಲಿ ಭಿನ್ನಾಭಿಪ್ರಾಯ ವ್ಯಕ್ತಪಡಿಸಲು ಹಿಂಜರಿಕೆ',
@@ -803,7 +851,7 @@ export const NANDINI_GROWTH_REPORT_KN: ICandidateGrowthReport = {
       reflectionPrompt: 'ಸಮಯ ಮಿತಿ ನಿಗದಿಪಡಿಸುವುದು ಗಡುವನ್ನು ಉಲ್ಲಂಘಿಸದೆ ಹೊಸ ವಿಧಾನಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಲು ಸಹಾಯ ಮಾಡಿತೇ?',
     },
     {
-      priorityTitle: 'STAR ಫಲಿತಾಂಶಗಳ ಅಳತೆ ಸುಧಾರಣೆ',
+      priorityTitle: 'ಪರಿಮಾಣಾತ್ಮಕ ಫಲಿತಾಂಶಗಳ ಅಳತೆ ಸುಧಾರಣೆ',
       timeframe: 'ಮುಂದಿನ 30 ದಿನಗಳು',
       timeline: 'ಮುಂದಿನ 30 ದಿನಗಳು',
       whyItMatters: 'ಅಳೆಯಬಹುದಾದ ಸಾಧನೆಗಳನ್ನು ಪ್ರದರ್ಶಿಸುವುದು ವೈಯಕ್ತಿಕ ಪ್ರಾಮುಖ್ಯತೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.',

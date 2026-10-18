@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DiscoverU - Future of Work & Enterprise Productivity",
-  description: "AI Powered Behavioral & Situational Assessment Platform with dual Enterprise and Candidate growth suites.",
+  title: "DiscoverU - Make Your Next Move Count",
+  description: "DiscoverU - Make Your Next Move Count. AI Powered Behavioral & Situational Assessment Platform with dual Enterprise and Candidate growth suites.",
 };
 
 export default function RootLayout({

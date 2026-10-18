@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Globe, Shield, UserCheck, Sparkles, BookOpen } from 'lucide-react';
+import { Globe, Sparkles, BookOpen } from 'lucide-react';
 
 interface NavbarProps {
   currentLanguage?: 'en' | 'hi' | 'kn';
@@ -66,12 +66,6 @@ export function Navbar({ currentLanguage = 'en', onLanguageChange, theme = 'ligh
               >
                 Assessment
               </Link>
-              <Link
-                href="/recruiter"
-                className="hidden sm:inline-block text-slate-300 hover:text-white px-2.5 py-1 rounded-md transition-colors"
-              >
-                Recruiter View
-              </Link>
             </nav>
           </div>
         </div>
@@ -118,39 +112,6 @@ export function Navbar({ currentLanguage = 'en', onLanguageChange, theme = 'ligh
           >
             <BookOpen className="w-4 h-4" />
             Candidate Test
-          </Link>
-          <Link
-            href="/recruiter"
-            className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-              pathname.startsWith('/recruiter')
-                ? 'bg-[var(--ulipsu-indigo-light)] text-[var(--ulipsu-indigo)] font-semibold'
-                : 'text-gray-700 hover:text-[var(--ulipsu-indigo)] hover:bg-gray-100'
-            }`}
-          >
-            <UserCheck className="w-4 h-4" />
-            Recruiter Suite
-          </Link>
-          <Link
-            href="/candidate"
-            className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-              pathname.startsWith('/candidate')
-                ? 'bg-[var(--ulipsu-indigo-light)] text-[var(--ulipsu-indigo)] font-semibold'
-                : 'text-gray-700 hover:text-[var(--ulipsu-indigo)] hover:bg-gray-100'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-[var(--ulipsu-amber)]" />
-            Candidate Growth
-          </Link>
-          <Link
-            href="/admin"
-            className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-              pathname.startsWith('/admin')
-                ? 'bg-[var(--ulipsu-indigo-light)] text-[var(--ulipsu-indigo)] font-semibold'
-                : 'text-gray-700 hover:text-[var(--ulipsu-indigo)] hover:bg-gray-100'
-            }`}
-          >
-            <Shield className="w-4 h-4 text-emerald-600" />
-            Admin Prompts
           </Link>
         </nav>
 

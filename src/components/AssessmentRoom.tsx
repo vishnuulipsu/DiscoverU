@@ -1985,13 +1985,13 @@ export function AssessmentRoom({
                     }`}
                   >
                     <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors mt-0.5 ${
+                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all mt-0.5 ${
                         isSelected
-                          ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
-                          : 'border border-gray-300 text-gray-600 bg-gray-50'
+                          ? 'border-2 border-[var(--ulipsu-indigo)] bg-[var(--ulipsu-indigo)] shadow-xs'
+                          : 'border-2 border-gray-300 bg-white'
                       }`}
                     >
-                      {opt.id}
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
                     <div className="flex-1">
                       <p className={`text-xs sm:text-sm leading-relaxed ${
@@ -2150,7 +2150,7 @@ export function AssessmentRoom({
                 </span>
                 {currentAnswer.selectedOptionId && (
                   <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
-                    <Check className="w-3 h-3" /> Option {currentAnswer.selectedOptionId} Selected
+                    <Check className="w-3 h-3" /> Option Selected
                   </span>
                 )}
               </div>
@@ -2168,13 +2168,13 @@ export function AssessmentRoom({
                     }`}
                   >
                     <div
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors mt-0.5 ${
+                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all mt-0.5 ${
                         isSelected
-                          ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
-                          : 'border border-gray-300 text-gray-600 bg-gray-50'
+                          ? 'border-2 border-[var(--ulipsu-indigo)] bg-[var(--ulipsu-indigo)] shadow-xs'
+                          : 'border-2 border-gray-300 bg-white'
                       }`}
                     >
-                      {opt.id}
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
                     <div className="flex-1">
                       <p

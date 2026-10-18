@@ -256,6 +256,7 @@ const UI_TEXT = {
     professionalTrackQ1: '30 Questions (Workplace behavioral statements on 1–5 scale)',
     professionalTrackQ2: 'Includes real-world experience justification for select statements',
     studentTrackTitle: 'Student Track',
+    studentTrackUnavailable: 'Unavailable',
     studentTrackBadge: 'Option-Based Approach',
     studentTrackQ1: '12 Questions (3 each across E/I, S/N, T/F, J/P)',
     studentTrackQ2: '4 Questions for vocational interest mapping',
@@ -339,6 +340,7 @@ const UI_TEXT = {
     professionalTrackQ1: '30 प्रश्न (कार्यस्थल व्यवहार पर 1–5 लिकर्ट पैमाना)',
     professionalTrackQ2: 'चयनित कथनों के लिए वास्तविक अनुभव का औचित्य शामिल है',
     studentTrackTitle: 'छात्र ट्रैक',
+    studentTrackUnavailable: 'अनुपलब्ध',
     studentTrackBadge: 'विकल्प-आधारित दृष्टिकोण',
     studentTrackQ1: '12 प्रश्न (E/I, S/N, T/F, J/P के 3-3 प्रश्न)',
     studentTrackQ2: 'व्यावसायिक रुचि मैपिंग हेतु 4 प्रश्न',
@@ -422,6 +424,7 @@ const UI_TEXT = {
     professionalTrackQ1: '30 ಪ್ರಶ್ನೆಗಳು (ಕೆಲಸದ ಶೈಲಿಯ ಹೇಳಿಕೆಗಳು 1–5 ಲಿಕರ್ಟ್ ಪ್ರಮಾಣ)',
     professionalTrackQ2: 'ಆಯ್ದ ಹೇಳಿಕೆಗಳಿಗೆ ನೈಜ ಅನುಭವದ ಸಮರ್ಥನೆ ಒಳಗೊಂಡಿದೆ',
     studentTrackTitle: 'ವಿದ್ಯಾರ್ಥಿ ಟ್ರ್ಯಾಕ್',
+    studentTrackUnavailable: 'ಲಭ್ಯವಿಲ್ಲ',
     studentTrackBadge: 'ಆಯ್ಕೆ-ಆಧಾರಿತ ವಿಧಾನ',
     studentTrackQ1: '12 ಪ್ರಶ್ನೆಗಳು (E/I, S/N, T/F, J/P ತಲಾ 3)',
     studentTrackQ2: 'ವೃತ್ತಿಪರ ಆಸಕ್ತಿ ಮ್ಯಾಪಿಂಗ್‌ಗಾಗಿ 4 ಪ್ರಶ್ನೆಗಳು',
@@ -537,11 +540,7 @@ export function AssessmentRoom({
 
   const handleCareerStageChange = (newStage: string) => {
     setCareerStage(newStage);
-    if (newStage === 'Student') {
-      setAssessmentTrack('student');
-    } else if (newStage === 'Experienced Professional' || newStage === 'Recent Graduate / Fresher') {
-      setAssessmentTrack('professional');
-    }
+    setAssessmentTrack('professional');
   };
 
   // Generator Modal State
@@ -717,7 +716,7 @@ export function AssessmentRoom({
         if (draftToRestore.degreeQualification) setDegreeQualification(draftToRestore.degreeQualification);
         if (draftToRestore.careerStage) setCareerStage(draftToRestore.careerStage);
         if (draftToRestore.workExperience) setWorkExperience(draftToRestore.workExperience);
-        if (draftToRestore.assessmentTrack) setAssessmentTrack(draftToRestore.assessmentTrack);
+        setAssessmentTrack('professional');
         if (draftToRestore.targetRoleField) setTargetRoleField(draftToRestore.targetRoleField);
         if (draftToRestore.currentRole) setCurrentRole(draftToRestore.currentRole);
         if (draftToRestore.customRoleInput) setCustomRoleInput(draftToRestore.customRoleInput);
@@ -917,6 +916,16 @@ export function AssessmentRoom({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           candidateName: trimmedName,
+          candidateEmail: emailToUse,
+          dob,
+          gender,
+          country,
+          stateRegion,
+          educationLevel,
+          degreeQualification,
+          careerStage,
+          workExperience,
+          targetRoleField,
           currentRole: roleToSend,
           targetIndustry: industryToSend,
           testTrack,
@@ -963,9 +972,10 @@ export function AssessmentRoom({
         setIsConfigModalOpen(false);
 
         const indName = INDUSTRY_OPTIONS.find((i) => i.id === targetIndustry)?.name || targetIndustry;
+        const profileTag = [degreeQualification, careerStage, workExperience].filter(Boolean).join(' • ');
         const feedbackMsg = data.generatedByAi 
           ? `✨ DiscoverU AI Engine synthesized ${data.questions.length} tailored dilemmas for ${roleToSend} in ${indName}!`
-          : `Assessment tailored for ${roleToSend} in ${indName}!`;
+          : `Assessment tailored for ${trimmedName} (${roleToSend}${profileTag ? ` • ${profileTag}` : ''})!`;
         setGenerationFeedback(feedbackMsg);
         setTimeout(() => setGenerationFeedback(null), 6000);
 
@@ -1803,34 +1813,24 @@ export function AssessmentRoom({
                     </div>
                   </div>
 
-                  {/* Option 2: Student Track */}
+                  {/* Option 2: Student Track (disabled) */}
                   <div
-                    onClick={() => setAssessmentTrack('student')}
-                    className={`p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${
-                      assessmentTrack === 'student'
-                        ? 'border-[var(--ulipsu-indigo)] bg-gradient-to-b from-indigo-50/70 to-white shadow-sm ring-1 ring-[var(--ulipsu-indigo)]'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-xs'
-                    }`}
+                    aria-disabled="true"
+                    className="p-5 rounded-2xl border-2 border-gray-200 bg-gray-50 relative flex flex-col justify-between opacity-60 cursor-not-allowed select-none"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2.5">
-                          <span className="w-9 h-9 rounded-xl bg-purple-100/80 flex items-center justify-center text-lg shadow-2xs">
+                          <span className="w-9 h-9 rounded-xl bg-purple-100/80 flex items-center justify-center text-lg shadow-2xs grayscale">
                             🎓
                           </span>
-                          <h3 className="text-sm font-bold text-gray-900">
+                          <h3 className="text-sm font-bold text-gray-500">
                             {t.studentTrackTitle}
                           </h3>
                         </div>
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 transition-colors ${
-                            assessmentTrack === 'student'
-                              ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
-                              : 'border-2 border-gray-300 bg-white'
-                          }`}
-                        >
-                          {assessmentTrack === 'student' && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
-                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 shrink-0">
+                          {t.studentTrackUnavailable}
+                        </span>
                       </div>
 
                       {/* Clean structured items without verbose detailing */}

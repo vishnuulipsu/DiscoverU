@@ -6,6 +6,16 @@ import path from 'path';
 
 export interface GenerateAssessmentParams {
   candidateName: string;
+  candidateEmail?: string;
+  dob?: string;
+  gender?: string;
+  country?: string;
+  stateRegion?: string;
+  educationLevel?: string;
+  degreeQualification?: string;
+  careerStage?: string;
+  workExperience?: string;
+  targetRoleField?: string;
   currentRole: string; // What candidate is currently doing
   targetIndustry: string; // Industry they want to work in
   testTrack?: 'full' | 'crisis' | 'cross_functional' | 'governance'; // Which test they want to take
@@ -88,24 +98,30 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
   const industryKey = (targetIndustry || 'saas').toLowerCase();
   const ind = INDUSTRY_CONTEXTS[industryKey] || INDUSTRY_CONTEXTS.saas;
 
+  const candidateDisplayName = params.candidateName || 'Candidate';
+  const roleFieldDisplay = params.targetRoleField || params.currentRole || 'Professional';
+  const expDisplay = params.workExperience ? ` • ${params.workExperience}` : '';
+  const degreeDisplay = params.degreeQualification ? ` • ${params.degreeQualification}` : '';
+  const targetDisplay = `${roleFieldDisplay}${degreeDisplay}${expDisplay}`;
+
   // 1. Student Track: MBTI (12) + Holland RIASEC (4)
   if (assessmentTrack === 'student') {
-    const studentQuestions = buildStudentQuestions(currentRole, targetIndustry);
+    const studentQuestions = buildStudentQuestions(currentRole, targetIndustry, params);
     return {
-      title: `Student Aptitude & Personality Assessment (MBTI + Holland) - ${ind.name}`,
-      roleTarget: `${currentRole || 'Student / Academic'} (${ind.name})`,
-      description: `16 Option-based questions exploring Myers-Briggs Type Indicator (12) and Holland RIASEC Career Code (4) with non-mandatory rationale explanation.`,
+      title: `Student Aptitude & Personality Assessment - ${candidateDisplayName}`,
+      roleTarget: `${candidateDisplayName} (${params.educationLevel || 'Student'}${degreeDisplay})`,
+      description: `16 Option-based questions exploring Myers-Briggs Type Indicator (12) and Holland RIASEC Career Code (4) tailored for ${candidateDisplayName}.`,
       questions: studentQuestions,
     };
   }
 
   // 2. Working Professional Track: Workplace Behavioral Dimensions (30) with 5 mandatory experience justifications
   if (assessmentTrack === 'professional') {
-    const professionalQuestions = buildProfessionalQuestions(currentRole, targetIndustry);
+    const professionalQuestions = buildProfessionalQuestions(currentRole, targetIndustry, undefined, params);
     return {
-      title: `Professional Leadership & Behavioral Assessment - ${ind.name}`,
-      roleTarget: `${currentRole || 'Software Professional'} (${ind.name})`,
-      description: `30 Workplace behavioral questions across 5 core dimensions with 5 mandatory experience justifications evaluating real-world leadership.`,
+      title: `Workplace Behavioral & Situational Assessment - ${candidateDisplayName} (${roleFieldDisplay})`,
+      roleTarget: targetDisplay,
+      description: `30 Tailored behavioral questions across 5 core dimensions with 5 mandatory experience justifications evaluated for ${candidateDisplayName}.`,
       questions: professionalQuestions,
     };
   }

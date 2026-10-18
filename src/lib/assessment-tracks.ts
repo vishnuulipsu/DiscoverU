@@ -26,14 +26,542 @@ export const LIKERT_OPTIONS_KN = [
 ];
 
 // ============================================================================
+// CANDIDATE PROFILE CONTEXT & DOMAIN SPECIALIZATION
+// ============================================================================
+
+export interface ICandidateProfileContext {
+  candidateName?: string;
+  candidateEmail?: string;
+  dob?: string;
+  gender?: string;
+  country?: string;
+  stateRegion?: string;
+  educationLevel?: string;
+  degreeQualification?: string;
+  careerStage?: string;
+  workExperience?: string;
+  targetRoleField?: string;
+  currentRole?: string;
+  targetIndustry?: string;
+}
+
+export type CandidateDomain = 'tech' | 'finance' | 'business' | 'operations' | 'design' | 'academic';
+
+export function resolveDomain(ctx?: ICandidateProfileContext): CandidateDomain {
+  if (!ctx) return 'tech';
+  const combined = [
+    ctx.targetRoleField,
+    ctx.currentRole,
+    ctx.degreeQualification,
+    ctx.educationLevel,
+    ctx.careerStage,
+    ctx.targetIndustry,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  // Finance / Banking / Accounting / Commerce
+  if (
+    /finance|banking|fintech|accounting|taxation|audit|chartered|ca|cfa|b\.?com|m\.?com|commerce|equity|investment|wealth/i.test(combined)
+  ) {
+    return 'finance';
+  }
+
+  // Design / Creative / UI/UX / Architecture
+  if (
+    /design|ui\/ux|ux\/ui|creative|graphic|b\.?des|m\.?des|multimedia|visual|product design|interior|architecture/i.test(combined)
+  ) {
+    return 'design';
+  }
+
+  // Operations / Supply Chain / Logistics / Retail
+  if (
+    /operation|supply chain|logistics|warehouse|inventory|procurement|shipping|retail management|plant|manufacturing/i.test(combined)
+  ) {
+    return 'operations';
+  }
+
+  // Business / Management / Consulting / Sales / Marketing / Strategy / HR
+  if (
+    /business|consulting|strategy|management|sales|marketing|mba|bba|pgdm|human resources|hr|product manager|executive/i.test(combined)
+  ) {
+    return 'business';
+  }
+
+  // Academic / Research / Science / PhD
+  if (
+    /academic|research|ph\.?d|scholar|faculty|lecturer|professor|curriculum|teaching|pure science/i.test(combined)
+  ) {
+    return 'academic';
+  }
+
+  // Default is Tech / Engineering / IT
+  return 'tech';
+}
+
+export function isEarlyCareer(ctx?: ICandidateProfileContext): boolean {
+  if (!ctx) return false;
+  const stage = (ctx.careerStage || '').toLowerCase();
+  const exp = (ctx.workExperience || '').toLowerCase();
+  const edu = (ctx.educationLevel || '').toLowerCase();
+
+  if (stage.includes('student') || stage.includes('intern') || stage.includes('fresher') || stage.includes('entry')) {
+    return true;
+  }
+  if (exp.includes('0') || exp.includes('fresher') || exp.includes('< 1') || exp.includes('none') || exp.includes('intern')) {
+    return true;
+  }
+  if (edu.includes('pursuing') || edu.includes('student')) {
+    return true;
+  }
+  return false;
+}
+
+interface DomainVariantText {
+  titleEn?: string;
+  scenarioEn?: string;
+  titleHi?: string;
+  scenarioHi?: string;
+  titleKn?: string;
+  scenarioKn?: string;
+}
+
+const DOMAIN_QUESTION_VARIANTS: Record<string, Partial<Record<CandidateDomain, DomainVariantText>>> = {
+  ocean_o1: {
+    finance: {
+      titleEn: 'Openness 1: Financial Modeling & Analytical Innovation',
+      scenarioEn: 'I actively seek out and advocate for testing novel financial models, automated analytics, or algorithmic spreadsheets, even when current reporting workflows are stable.',
+      titleHi: 'खुलापन 1: वित्तीय मॉडलिंग और विश्लेषणात्मक नवाचार',
+      scenarioHi: 'जब मौजूदा वित्तीय रिपोर्टिंग प्रणाली स्थिर हो, तब भी मैं नए वित्तीय मॉडल, स्वचालित विश्लेषण और उन्नत टूल्स तलाशने का प्रयास करता/करती हूँ।',
+      titleKn: 'ಮುಕ್ತತೆ 1: ಹಣಕಾಸು ಮಾದರಿ ಮತ್ತು ನವೀನ ವಿಶ್ಲೇಷಣೆ',
+      scenarioKn: 'ಪ್ರಸ್ತುತ ಹಣಕಾಸು ವರದಿ ವ್ಯವಸ್ಥೆ ಸ್ಥಿರವಾಗಿದ್ದರೂ, ನಾನು ಹೊಸ ಹಣಕಾಸು ಮಾದರಿಗಳು ಮತ್ತು ಸ್ವಯಂಚಾಲಿತ ವಿಶ್ಲೇಷಣಾ ವಿಧಾನಗಳನ್ನು ಪರೀಕ್ಷಿಸಲು ಆಸಕ್ತಿ ವಹಿಸುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Openness 1: Strategic Frameworks & Growth Tools',
+      scenarioEn: 'I actively seek out and advocate for testing novel strategic frameworks or business management platforms, even when current operations are stable.',
+      titleHi: 'खुलापन 1: रणनीतिक ढांचे और प्रबंधन नवाचार',
+      scenarioHi: 'जब मौजूदा व्यावसायिक प्रक्रियाएं स्थिर हों, तब भी मैं नए रणनीतिक ढांचे और प्रबंधन टूल्स को आजमाने के लिए तत्पर रहता/रहती हूँ।',
+      titleKn: 'ಮುಕ್ತತೆ 1: ಕಾರ್ಯತಂತ್ರ ಮತ್ತು ನವೀನ ನಿರ್ವಹಣಾ ವಿಧಾನಗಳು',
+      scenarioKn: 'ಪ್ರಸ್ತುತ ವ್ಯವಹಾರ ತಂತ್ರಗಳು ಸ್ಥಿರವಾಗಿದ್ದರೂ, ನಾನು ಹೊಸ ಮಾರುಕಟ್ಟೆ ತಂತ್ರಜ್ಞಾನಗಳು ಮತ್ತು ನಿರ್ವಹಣಾ ವಿಧಾನಗಳನ್ನು ಜಾರಿಗೆ ತರಲು ಮುಂದಾಗುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Openness 1: Workflow Automation & Logistics Tools',
+      scenarioEn: 'I actively seek out and advocate for testing novel workflow automation, tracking systems, or logistics platforms, even when current processes are stable.',
+      titleHi: 'खुलापन 1: परिचालन तकनीक और लॉजिस्टिक्स टूल्स',
+      scenarioHi: 'जब वर्तमान परिचालन प्रक्रियाएं स्थिर हों, तब भी मैं नई वर्कफ़्लो तकनीकों, ट्रैकिंग सिस्टम और लॉजिस्टिक्स टूल्स की तलाश करता/करती हूँ।',
+      titleKn: 'ಮುಕ್ತತೆ 1: ಕಾರ್ಯಾಚರಣೆ ಆಟೋಮೇಷನ್ ಮತ್ತು ಸಾಗಾಟ ವ್ಯವಸ್ಥೆ',
+      scenarioKn: 'ಪ್ರಸ್ತುತ ಕಾರ್ಯಾಚರಣೆ ಪ್ರಕ್ರಿಯೆಗಳು ಸುಗಮವಾಗಿದ್ದರೂ, ನಾನು ಹೊಸ ವರ್ಕ್‌ಫ್ಲೋ ಆಟೋಮೇಷನ್ ಮತ್ತು ಸಾಗಾಟ ನಿರ್ವಹಣಾ ವಿಧಾನಗಳನ್ನು ಅಳವಡಿಸಿಕೊಳ್ಳಲು ಉತ್ಸುಕನಾಗಿರುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Openness 1: Novel Design Systems & Creative Tools',
+      scenarioEn: 'I actively seek out and advocate for testing novel design systems, generative tools, or interaction patterns, even when current UI/UX libraries are stable.',
+      titleHi: 'खुलापन 1: नए डिज़ाइन सिस्टम और रचनात्मक टूल्स',
+      scenarioHi: 'जब मौजूदा डिज़ाइन लाइब्रेरी स्थिर हो, तब भी मैं नए डिज़ाइन सिस्टम, प्रोटोटाइपिंग टूल्स और नवीन शैलियों के प्रयोग की तलाश करता/करती हूँ।',
+      titleKn: 'ಮುಕ್ತತೆ 1: ಹೊಸ ವಿನ್ಯಾಸ ವ್ಯವಸ್ಥೆಗಳು ಮತ್ತು ಪರಿಕರಗಳು',
+      scenarioKn: 'ಪ್ರಸ್ತುತ ವಿನ್ಯಾಸ ವ್ಯವಸ್ಥೆ ಸ್ಥಿರವಾಗಿದ್ದರೂ, ನಾನು ಹೊಸ ವಿನ್ಯಾಸ ಪರಿಕರಗಳು, ಪ್ರೋಟೋಟೈಪಿಂಗ್ ಸಾಧನಗಳು ಮತ್ತು ನವೀನ ಸಂವಹನ ಶೈಲಿಗಳನ್ನು ಅನ್ವೇಷಿಸುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Openness 1: Novel Research Paradigms & Methodologies',
+      scenarioEn: 'I actively seek out and advocate for exploring novel research methodologies or interdisciplinary analytical frameworks, even when traditional methods are established.',
+      titleHi: 'खुलापन 1: नई शोध पद्धतियाँ और अंतःविषय विश्लेषण',
+      scenarioHi: 'जब पारंपरिक शोध पद्धतियाँ स्थापित हों, तब भी मैं नई शोध पद्धतियों और अंतःविषय विश्लेषण प्रणालियों को अपनाने की वकालत करता/करती हूँ।',
+      titleKn: 'ಮುಕ್ತತೆ 1: ನವೀನ ಸಂಶೋಧನಾ ವಿಧಾನಗಳು ಮತ್ತು ತತ್ವಗಳು',
+      scenarioKn: 'ಸಾಂಪ್ರದಾಯಿಕ ಸಂಶೋಧನಾ ವಿಧಾನಗಳು ಸುಸ್ಥಿರವಾಗಿದ್ದರೂ, ನಾನು ಹೊಸ ವಿಶ್ಲೇಷಣಾ ವಿಧಾನಗಳು ಮತ್ತು ಅಂತರಶಿಸ್ತೀಯ ತತ್ವಗಳನ್ನು ಅನ್ವೇಷಿಸಲು ಆಸಕ್ತಿ ವಹಿಸುತ್ತೇನೆ.',
+    },
+  },
+  ocean_c1: {
+    finance: {
+      titleEn: 'Conscientiousness 1: Meticulous Reconciliation & Accuracy',
+      scenarioEn: 'I double-check financial reconciliations, balance trails, and regulatory compliance thoroughly before considering any account closing completed.',
+      titleHi: 'कर्तव्यनिष्ठा 1: वित्तीय मिलान और सूक्ष्म सटीकता',
+      scenarioHi: 'मैं किसी भी वित्तीय कार्य या खाता मिलान को पूरा मानने से पहले लेजर, बैलेंस और नियमों की गहराई से दोबारा जांच करता/करती हूँ।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 1: ಹಣಕಾಸಿನ ಸಮನ್ವಯ ಮತ್ತು ನಿಖರತೆ',
+      scenarioKn: 'ಯಾವುದೇ ಲೆಕ್ಕಪತ್ರವನ್ನು ಮುಕ್ತಾಯಗೊಳಿಸುವ ಮುನ್ನ ಲೆಡ್ಜರ್ ಹೊಂದಾಣಿಕೆ, ಬ್ಯಾಲೆನ್ಸ್ ಶೀಟ್ ಮತ್ತು ನಿಯಮಾವಳಿಗಳನ್ನು ನಾನು ಕೂಲಂಕಷವಾಗಿ ಪರಿಶೀಲಿಸುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Conscientiousness 1: Rigorous Proposal & Projection Vetting',
+      scenarioEn: 'I double-check market assumptions, financial projections, and deliverables thoroughly before considering any strategic proposal completed.',
+      titleHi: 'कर्तव्यनिष्ठा 1: व्यावसायिक प्रस्तावों की गहन समीक्षा',
+      scenarioHi: 'मैं किसी भी रणनीतिक प्रस्ताव को अंतिम रूप देने से पहले बाजार के अनुमानों, वित्तीय आंकड़ों और प्रदेयों की गहराई से जांच करता/करती हूँ।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 1: ಕಾರ್ಯತಂತ್ರ ಪ್ರಸ್ತಾಪಗಳ ಕರಾರುವಾಕ್ ಪರಿಶೀಲನೆ',
+      scenarioKn: 'ಯಾವುದೇ ಕಾರ್ಯತಂತ್ರ ಪ್ರಸ್ತಾಪವನ್ನು ಅಂತಿಮಗೊಳಿಸುವ ಮೊದಲು ಮಾರುಕಟ್ಟೆ ಅಂದಾಜುಗಳು, ಬಜೆಟ್ ಯೋಜನೆಗಳು ಮತ್ತು ಪ್ರಮುಖ ಅಂಶಗಳನ್ನು ನಾನು ಕರಾರುವಾಕ್ಕಾಗಿ ಪರಿಶೀಲಿಸುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Conscientiousness 1: Rigorous Manifest & Quality Checks',
+      scenarioEn: 'I double-check inventory counts, dispatch manifests, and safety checklists thoroughly before approving any operational handover.',
+      titleHi: 'कर्तव्यनिष्ठा 1: इन्वेंटरी और परिचालन सटीकता',
+      scenarioHi: 'मैं किसी भी परिचालन या आपूर्ति कार्य को पूरा मानने से पहले इन्वेंटरी, प्रेषण प्रपत्र और सुरक्षा मानकों की बारीकी से जांच करता/करती हूँ।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 1: ದಾಸ್ತಾನು ಮತ್ತು ಗುಣಮಟ್ಟದ ಕಟ್ಟುನಿಟ್ಟಿನ ಪರಿಶೀಲನೆ',
+      scenarioKn: 'ಯಾವುದೇ ಕಾರ್ಯಾಚರಣೆ ಅಥವಾ ಸರಬರಾಜು ಅನುಮೋದಿಸುವ ಮುನ್ನ ದಾಸ್ತಾನು ವಿವರ, ರವಾನೆ ಪಟ್ಟಿ ಮತ್ತು ಸುರಕ್ಷತಾ ನಿಯಮಗಳನ್ನು ನಾನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಪರಿಶೀಲಿಸುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Conscientiousness 1: Pixel Precision & Accessibility Standards',
+      scenarioEn: 'I double-check responsive breakpoints, accessibility guidelines (WCAG), and visual design tokens before handing off assets to production.',
+      titleHi: 'कर्तव्यनिष्ठा 1: डिज़ाइन सटीकता और एक्सेसिबिलिटी मानक',
+      scenarioHi: 'मैं किसी भी डिज़ाइन को अंतिम रूप देने से पहले एक्सेसिबिलिटी मानकों, विभिन्न स्क्रीन साइज़ और विज़ुअल घटकों की सूक्ष्मता से जांच करता/करती हूँ।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 1: ವಿನ್ಯಾಸದ ನಿಖರತೆ ಮತ್ತು ಗುಣಮಟ್ಟ',
+      scenarioKn: 'ಯಾವುದೇ ವಿನ್ಯಾಸವನ್ನು ಅಂತಿಮಗೊಳಿಸುವ ಮುನ್ನ ಎಲ್ಲಾ ಪರದೆಯ ಹೊಂದಾಣಿಕೆಗಳು, ಪ್ರವೇಶ್ಯತೆ ಮಾನದಂಡಗಳು ಮತ್ತು ದೃಶ್ಯ ಅಂಶಗಳನ್ನು ನಾನು ಕೂಲಂಕಷವಾಗಿ ಪರಿಶೀಲಿಸುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Conscientiousness 1: Methodological Rigor & Data Integrity',
+      scenarioEn: 'I double-check citation sources, statistical validity, and dataset anomalies thoroughly before submitting any academic manuscript or report.',
+      titleHi: 'कर्तव्यनिष्ठा 1: शोध पद्धतियों और डेटा की कठोर जांच',
+      scenarioHi: 'मैं किसी भी शोध पत्र या रिपोर्ट को प्रस्तुत करने से पहले संदर्भ स्रोतों, सांख्यिकीय वैधता और डेटासेट विसंगतियों की कठोरता से जांच करता/करती हूँ।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 1: ಸಂಶೋಧನಾ ಸತ್ಯಾಸತ್ಯತೆ ಮತ್ತು ನಿಖರತೆ',
+      scenarioKn: 'ಯಾವುದೇ ಸಂಶೋಧನಾ ವರದಿ ಸಲ್ಲಿಸುವ ಮುನ್ನ ಮೂಲ ಉಲ್ಲೇಖಗಳು, ಸಂಖ್ಯಾಶಾಸ್ತ್ರೀಯ ನಿಖರತೆ ಮತ್ತು ದತ್ತಾಂಶದ ಸತ್ಯಾಸತ್ಯತೆಯನ್ನು ನಾನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸುತ್ತೇನೆ.',
+    },
+  },
+  ocean_c5: {
+    finance: {
+      titleEn: 'Conscientiousness 5: Statutory & Compliance Governance',
+      scenarioEn: 'I adhere strictly to statutory regulations and internal audit controls, even when taking procedural shortcuts could speed up transactions.',
+      titleHi: 'कर्तव्यनिष्ठा 5: वैधानिक और ऑडिट नियमों का अनुपालन',
+      scenarioHi: 'मैं वैधानिक नियमों और आंतरिक ऑडिट प्रक्रियाओं का कड़ाई से पालन करता/करती हूँ, भले ही शॉर्टकट से लेन-देन तेजी से हो सकता हो।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 5: ಶಾಸನಬದ್ಧ ಮತ್ತು ಲೆಕ್ಕಪರಿಶೋಧನಾ ನಿಯಮ ಪಾಲನೆ',
+      scenarioKn: 'ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಂದ ಕೆಲಸ ಬೇಗ ಮುಗಿಯಬಹುದಾದರೂ, ನಾನು ಶಾಸನಬದ್ಧ ನಿಯಮಗಳು ಮತ್ತು ಆಂತರಿಕ ಲೆಕ್ಕಪರಿಶೋಧನಾ ಮಾನದಂಡಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಪಾಲಿಸುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Conscientiousness 5: Corporate Governance & Policy Adherence',
+      scenarioEn: 'I adhere strictly to corporate policies and governance guidelines, even when bypassing approvals could accelerate deal closures.',
+      titleHi: 'कर्तव्यनिष्ठा 5: कॉर्पोरेट नीतियां और अनुपालन',
+      scenarioHi: 'मैं कॉर्पोरेट नीतियों और अनुमोदन प्रक्रियाओं का निष्ठापूर्वक पालन करता/करती हूँ, भले ही नियमों की अनदेखी से काम तेजी से हो सकता हो।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 5: ಸಾಂಸ್ಥಿಕ ನಿಯಮ ಮತ್ತು ನೀತಿ ಪಾಲನೆ',
+      scenarioKn: 'ಅನುಮೋದನೆಗಳನ್ನು ಬೈಪಾಸ್ ಮಾಡುವುದರಿಂದ ಒಪ್ಪಂದಗಳು ಬೇಗ ಆಗಬಹುದಾದರೂ, ನಾನು ಸಾಂಸ್ಥಿಕ ನೀತಿಗಳು ಮತ್ತು ಮಾರ್ಗಸೂಚಿಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಪಾಲಿಸುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Conscientiousness 5: SOP & Safety Compliance',
+      scenarioEn: 'I adhere strictly to standard operating procedures (SOPs) and safety protocols, even when shortcutting steps could clear operational backlogs faster.',
+      titleHi: 'कर्तव्यनिष्ठा 5: मानक संचालन प्रक्रियाएं (SOP) और सुरक्षा',
+      scenarioHi: 'मैं मानक प्रक्रियाओं (SOP) और सुरक्षा प्रोटोकॉल का कड़ाई से पालन करता/करती हूँ, भले ही शॉर्टकट से बैकलॉग तेजी से साफ हो सकता हो।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 5: ಕಾರ್ಯಾಚರಣೆ ನಿಯಮಾವಳಿ ಮತ್ತು ಸುರಕ್ಷತಾ ಮಾನದಂಡ',
+      scenarioKn: 'ಶಾರ್ಟ್‌ಕಟ್ ಬಳಸಿ ಕೆಲಸ ಮುಗಿಸಬಹುದಾದರೂ, ನಾನು ಪ್ರಮಾಣಿತ ಕಾರ್ಯವಿಧಾನಗಳು (SOP) ಮತ್ತು ಸುರಕ್ಷತಾ ನಿಯಮಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಪಾಲಿಸುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Conscientiousness 5: Design Systems & Brand Standards',
+      scenarioEn: 'I adhere strictly to brand style guides and design system tokens, even when improvising custom styles could speed up asset delivery.',
+      titleHi: 'कर्तव्यनिष्ठा 5: ब्रांड दिशानिर्देश और डिज़ाइन मानक',
+      scenarioHi: 'मैं ब्रांड गाइडलाइंस और डिज़ाइन सिस्टम का पूर्ण अनुपालन करता/करती हूँ, भले ही कस्टम शॉर्टकट से काम जल्दी हो सकता हो।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 5: ಬ್ರ್ಯಾಂಡ್ ಮಾರ್ಗಸೂಚಿಗಳು ಮತ್ತು ವಿನ್ಯಾಸ ಶೈಲಿ',
+      scenarioKn: 'ತಾತ್ಕಾಲಿಕ ವಿನ್ಯಾಸಗಳಿಂದ ಕೆಲಸ ಬೇಗ ಮುಗಿಯಬಹುದಾದರೂ, ನಾನು ಬ್ರ್ಯಾಂಡ್ ಮಾರ್ಗಸೂಚಿಗಳು ಮತ್ತು ವಿನ್ಯಾಸ ವ್ಯವಸ್ಥೆಯನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಪಾಲಿಸುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Conscientiousness 5: Academic Integrity & Ethical Clearance',
+      scenarioEn: 'I adhere strictly to research ethics, institutional review board (IRB) standards, and attribution protocols, even under tight publication deadlines.',
+      titleHi: 'कर्तव्यनिष्ठा 5: अकादमिक सत्यनिष्ठा और नैतिक मानक',
+      scenarioHi: 'प्रकाशन की समय-सीमा का दबाव होने पर भी मैं शोध नैतिकता और संस्थागत समीक्षा बोर्ड के मानकों का कड़ाई से पालन करता/करती हूँ।',
+      titleKn: 'ಕರ್ತವ್ಯನಿಷ್ಠೆ 5: ಶೈಕ್ಷಣಿಕ ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ನೀತಿ ಸಂಹಿತೆ',
+      scenarioKn: 'ಪ್ರಕಟಣೆಯ ಗಡುವು ಹತ್ತಿರವಿದ್ದರೂ ಸಹ, ನಾನು ಸಂಶೋಧನಾ ನೀತಿಗಳು ಮತ್ತು ಸಂಸ್ಥೆಯ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಯಮಗಳನ್ನು ಪಾಲಿಸುತ್ತೇನೆ.',
+    },
+  },
+  ocean_e2: {
+    finance: {
+      titleEn: 'Extraversion 2: Collaborative Financial Analysis',
+      scenarioEn: 'I feel most energized solving complex financial challenges through collaborative reviews, cross-table modeling, and team syncs.',
+      titleHi: 'बहिर्मुखता 2: सामूहिक वित्तीय विश्लेषण',
+      scenarioHi: 'जटिल वित्तीय चुनौतियों और मॉडल तैयार करते समय मैं सहकर्मियों के साथ मिलकर सामूहिक विश्लेषण और समीक्षा में सबसे अधिक ऊर्जावान महसूस करता/करती हूँ।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 2: ಜಂಟಿ ಹಣಕಾಸು ವಿಶ್ಲೇಷಣೆ',
+      scenarioKn: 'ಸಂಕೀರ್ಣ ಹಣಕಾಸು ಸಮಸ್ಯೆಗಳು ಮತ್ತು ವಿಶ್ಲೇಷಣೆ ನಡೆಸುವಾಗ ತಂಡದ ಸದಸ್ಯರೊಂದಿಗೆ ಮುಕ್ತವಾಗಿ ಸಹಕರಿಸಿ ಪರಿಹಾರ ಕಂಡುಕೊಳ್ಳುವುದರಲ್ಲಿ ನನಗೆ ಹೆಚ್ಚಿನ ಉತ್ಸಾಹವಿರುತ್ತದೆ.',
+    },
+    business: {
+      titleEn: 'Extraversion 2: Interactive Strategy Brainstorming',
+      scenarioEn: 'I feel most energized cracking complex strategic problems through live cross-functional workshops and collaborative brainstorming.',
+      titleHi: 'बहिर्मुखता 2: रणनीतिक कार्यशालाओं से ऊर्जा',
+      scenarioHi: 'जटिल व्यावसायिक रणनीतियों को हल करने के लिए सहकर्मियों के साथ सामूहिक कार्यशालाओं और लाइव विचार-मंथन में मुझे सबसे अधिक ऊर्जा मिलती है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 2: ಕಾರ್ಯತಂತ್ರ ರೂಪಿಸುವ ಜಂಟಿ ಸಭೆಗಳು',
+      scenarioKn: 'ಸಂಕೀರ್ಣ ವ್ಯಾಪಾರ ಸವಾಲುಗಳಿಗೆ ಪರಿಹಾರ ಕಂಡುಕೊಳ್ಳಲು ವಿವಿಧ ತಂಡಗಳೊಂದಿಗೆ ಒಟ್ಟಾಗಿ ಚರ್ಚಿಸಿ ಕಾರ್ಯತಂತ್ರ ರೂಪಿಸುವುದರಲ್ಲಿ ನನಗೆ ಹೆಚ್ಚಿನ ಉತ್ಸಾಹವಿರುತ್ತದೆ.',
+    },
+    operations: {
+      titleEn: 'Extraversion 2: Operational Floor Alignment',
+      scenarioEn: 'I feel most energized resolving operational bottlenecks through live floor huddles and rapid cross-functional war rooms.',
+      titleHi: 'बहिर्मुखता 2: ऑन-ग्राउंड टीम समन्वय',
+      scenarioHi: 'परिचालन रुकावटों को हल करने के लिए ऑन-ग्राउंड टीम बैठकों और त्वरित समस्या-निवारण चर्चाओं में मुझे सबसे अधिक ऊर्जा मिलती है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 2: ನೇರ ಚರ್ಚೆ ಮತ್ತು ತಂಡದ ಸಮನ್ವಯ',
+      scenarioKn: 'ಕಾರ್ಯಾಚರಣೆಯ ಅಡೆತಡೆಗಳನ್ನು ನಿವಾರಿಸಲು ತಂಡದೊಂದಿಗೆ ನೇರ ಚರ್ಚೆ ನಡೆಸಿ ಜಂಟಿಯಾಗಿ ಪರಿಹಾರ ರೂಪಿಸುವುದರಲ್ಲಿ ನನಗೆ ಅಪಾರ ತೃಪ್ತಿ ಸಿಗುತ್ತದೆ.',
+    },
+    design: {
+      titleEn: 'Extraversion 2: Co-Design & Collaborative Sprints',
+      scenarioEn: 'I feel most energized solving user experience challenges through collaborative design sprints, sticky-note sessions, and co-design workshops.',
+      titleHi: 'बहिर्मुखता 2: सामूहिक डिज़ाइन स्प्रिंट्स',
+      scenarioHi: 'उपयोगकर्ता अनुभव की समस्याओं को सुलझाने के लिए डिज़ाइन स्प्रिंट्स, सामूहिक स्केचिंग और सहकर्मियों के साथ कार्यशालाओं में मुझे सबसे अधिक ऊर्जा मिलती है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 2: ಸಹ-ವಿನ್ಯಾಸ ಮತ್ತು ಸೃಜನಾತ್ಮಕ ಕಾರ್ಯಾಗಾರಗಳು',
+      scenarioKn: 'ಬಳಕೆದಾರ ಅನುಭವದ (UX) ಸವಾಲುಗಳನ್ನು ಪರಿಹರಿಸಲು ಸಹ-ವಿನ್ಯಾಸ ಕಾರ್ಯಾಗಾರಗಳು ಮತ್ತು ಸಾಮೂಹಿಕ ಸ್ಪ್ರಿಂಟ್‌ಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದರಲ್ಲಿ ನನಗೆ ಅಪಾರ ಆಸಕ್ತಿ.',
+    },
+    academic: {
+      titleEn: 'Extraversion 2: Seminar Debates & Scholarly Colloquiums',
+      scenarioEn: 'I feel most energized exploring intellectual challenges through department colloquiums, seminar debates, and co-author brainstorming.',
+      titleHi: 'बहिर्मुखता 2: बौद्धिक विचार-विमर्श और सेमिनार',
+      scenarioHi: 'जटिल बौद्धिक प्रश्नों पर विचार करने के लिए विभाग के सम्मेलनों, सेमिनार चर्चाओं और साथी शोधकर्ताओं के साथ विचार-मंथन में मुझे सबसे अधिक प्रेरणा मिलती है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 2: ವಿಚಾರಗೋಷ್ಠಿಗಳು ಮತ್ತು ಸಹ-ಸಂಶೋಧಕರ ಚರ್ಚೆ',
+      scenarioKn: 'ಬೌದ್ಧಿಕ ಸವಾಲುಗಳನ್ನು ಅನ್ವೇಷಿಸಲು ಇಲಾಖೆಯ ವಿಚಾರಗೋಷ್ಠಿಗಳು ಮತ್ತು ಸಹ-ಸಂಶೋಧಕರೊಂದಿಗೆ ಮುಕ್ತ ಚರ್ಚೆಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದು ನನಗೆ ಅತ್ಯಂತ ಪ್ರೇರಣಾದಾಯಕ.',
+    },
+  },
+  ocean_e6: {
+    finance: {
+      titleEn: 'Extraversion 6: Executive Financial Presentations',
+      scenarioEn: 'I look forward to presenting budget forecasts, quarterly financial briefings, and investor reviews in front of executive audiences.',
+      titleHi: 'बहिर्मुखता 6: वरिष्ठ प्रबंधन के समक्ष वित्तीय प्रस्तुति',
+      scenarioHi: 'वरिष्ठ नेतृत्व और हितधारकों के सामने बजट पूर्वानुमान, वित्तीय परिणाम और विश्लेषण प्रस्तुत करने में मुझे प्रसन्नता होती है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 6: ಹಣಕಾಸು ಪ್ರಸ್ತುತಿ ಮತ್ತು ವರದಿ',
+      scenarioKn: 'ಹಿರಿಯ ಅಧಿಕಾರಿಗಳು ಮತ್ತು ಷೇರುದಾರರ ಮುಂದೆ ಬಜೆಟ್ ಮುನ್ಸೂಚನೆ ಮತ್ತು ಹಣಕಾಸು ವಿಶ್ಲೇಷಣೆ ಪ್ರಸ್ತುತಪಡಿಸಲು ನಾನು ಸಂತೋಷದಿಂದ ಮುಂದೆ ಬರುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Extraversion 6: Strategic Pitching & Business Reviews',
+      scenarioEn: 'I look forward to pitching strategic initiatives, quarterly business reviews, and executive proposals in front of sizable audiences.',
+      titleHi: 'बहिर्मुखता 6: रणनीतिक प्रस्तावों की सार्वजनिक प्रस्तुति',
+      scenarioHi: 'बड़े समूहों और नेतृत्व के सामने व्यावसायिक प्रस्ताव, रणनीतिक योजनाएं और तिमाही समीक्षा प्रस्तुत करने में मुझे उत्साह मिलता है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 6: ಕಾರ್ಯತಂತ್ರ ಪ್ರಸ್ತಾಪಗಳ ಪ್ರಸ್ತುತಿ',
+      scenarioKn: 'ದೊಡ್ಡ ಸಭೆಗಳ ಮುಂದೆ ಕಾರ್ಯತಂತ್ರ ಪ್ರಸ್ತಾಪಗಳು ಮತ್ತು ತ್ರೈಮಾಸಿಕ ವ್ಯಾಪಾರ ವಿಮರ್ಶೆಗಳನ್ನು ಪ್ರಸ್ತುತಪಡಿಸಲು ನಾನು ಯಾವಾಗಲೂ ಉತ್ಸುಕನಾಗಿರುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Extraversion 6: Operational Briefings & Scorecard Reviews',
+      scenarioEn: 'I look forward to briefing stakeholders on logistics metrics, operational scorecards, and process retrospectives in front of leadership.',
+      titleHi: 'बहिर्मुखता 6: लॉजिस्टिक्स और परिचालन समीक्षा',
+      scenarioHi: 'वरिष्ठ अधिकारियों और टीम के सामने लॉजिस्टिक्स मेट्रिक्स, परिचालन रिपोर्ट और प्रक्रिया सुधार के परिणाम प्रस्तुत करने में मुझे गर्व महसूस होता है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 6: ಸರಬರಾಜು ಮತ್ತು ಪ್ರಗತಿ ವಿವರಣೆ',
+      scenarioKn: 'ನಾಯಕತ್ವದ ಮುಂದೆ ಕಾರ್ಯಾಚರಣೆ ಪ್ರಗತಿ ಪಟ್ಟಿ, ಸರಬರಾಜು ವರದಿ ಮತ್ತು ಪ್ರಕ್ರಿಯೆ ಸುಧಾರಣೆಯ ವಿವರಣೆ ನೀಡಲು ನನಗೆ ಹೆಮ್ಮೆ ಎನಿಸುತ್ತದೆ.',
+    },
+    design: {
+      titleEn: 'Extraversion 6: UX Critiques & Design Walkthroughs',
+      scenarioEn: 'I look forward to leading design walkthroughs, UX concept critiques, and visual pitches in front of broad stakeholder audiences.',
+      titleHi: 'बहिर्मुखता 6: डिज़ाइन वॉकथ्रू और प्रस्तुतियाँ',
+      scenarioHi: 'व्यापक हितधारकों और उत्पाद टीमों के सामने नए डिज़ाइन प्रोटोटाइप, उपयोगकर्ता अनुभव के विचार और विज़ुअल प्रस्तुतियां देने में मुझे आनंद आता है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 6: ವಿನ್ಯಾಸ ಪ್ರದರ್ಶನ ಮತ್ತು ಚರ್ಚೆ',
+      scenarioKn: 'ವಿವಿಧ ಪಾಲುದಾರರ ಮುಂದೆ ನವೀನ ಯುಐ/ಯುಎಕ್ಸ್ ಪರಿಕಲ್ಪನೆಗಳು ಮತ್ತು ವಿನ್ಯಾಸ ಪ್ರದರ್ಶನಗಳನ್ನು ನೀಡಲು ನಾನು ಉತ್ಸುಕನಾಗಿರುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Extraversion 6: Academic Symposium & Conference Lectures',
+      scenarioEn: 'I look forward to delivering research symposium presentations, conference lectures, and thesis defenses in front of academic peers.',
+      titleHi: 'बहिर्मुखता 6: संगोष्ठी व्याख्यान और शोध प्रस्तुति',
+      scenarioHi: 'अकादमिक साथियों और विशेषज्ञों के सम्मुख अपने शोध निष्कर्ष, संगोष्ठी व्याख्यान और सम्मेलन प्रस्तुतियाँ देने में मुझे प्रसन्नता होती है।',
+      titleKn: 'ಬಹಿರ್ಮುಖತೆ 6: ವಿಚಾರಸಂಕಿರಣ ಭಾಷಣ ಮತ್ತು ಸಂಶೋಧನಾ ಪ್ರಸ್ತುತಿ',
+      scenarioKn: 'ಶೈಕ್ಷಣಿಕ ಪರಿಣಿತರ ಮುಂದೆ ಸಂಶೋಧನಾ ಪ್ರಬಂಧಗಳು, ವಿಚಾರಸಂಕಿರಣ ಭಾಷಣಗಳು ಮತ್ತು ಸಂಶೋಧನಾ ಫಲಿತಾಂಶಗಳನ್ನು ಪ್ರಸ್ತುತಪಡಿಸಲು ನನಗೆ ತೃಪ್ತಿ ನೀಡುತ್ತದೆ.',
+    },
+  },
+  ocean_a1: {
+    finance: {
+      titleEn: 'Agreeableness 1: Constructive Resolution in Audits',
+      scenarioEn: 'When debating financial forecasts, budget allocations, or audit findings, I prioritize empathy and seek consensus rather than aggressively asserting my personal views.',
+      titleHi: 'सहमतिशीलता 1: ऑडिट और बजट चर्चा में सौहार्द',
+      scenarioHi: 'बजट आवंटन या वित्तीय समीक्षा पर चर्चा करते समय, मैं अपने विचार थोपने के बजाय सहानुभूति और आम सहमति बनाने को प्राथमिकता देता/देती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 1: ಲೆಕ್ಕಪರಿಶೋಧನಾ ಚರ್ಚೆಯಲ್ಲಿ ಒಮ್ಮತ',
+      scenarioKn: 'ಬಜೆಟ್ ಹಂಚಿಕೆ ಅಥವಾ ಹಣಕಾಸು ಪರಿಶೀಲನೆಯ ಸಮಯದಲ್ಲಿ, ನನ್ನ ವೈಯಕ್ತಿಕ ನಿರ್ಧಾರವನ್ನು ಒತ್ತಾಯಿಸುವ ಬದಲು ಸೌಹಾರ್ದಯುತ ಒಮ್ಮತ ಮೂಡಿಸಲು ಪ್ರಾಶಸ್ತ್ಯ ನೀಡುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Agreeableness 1: Alignment in Strategic Roadmaps',
+      scenarioEn: 'When debating strategic roadmaps or target priorities, I prioritize active listening and consensus-building rather than aggressively pushing my own proposal.',
+      titleHi: 'सहमतिशीलता 1: रणनीतिक प्राथमिकताओं में साझा सहमति',
+      scenarioHi: 'रणनीतिक प्राथमिकताओं या व्यावसायिक लक्ष्यों पर चर्चा करते समय, मैं अपने प्रस्ताव पर अड़े रहने के बजाय सहकर्मियों के साथ सहमति बनाने को प्राथमिकता देता/देती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 1: ಕಾರ್ಯತಂತ್ರ ಆದ್ಯತೆಗಳಲ್ಲಿ ಸಹಮತ',
+      scenarioKn: 'ವ್ಯಾಪಾರ ಯೋಜನೆಗಳು ಮತ್ತು ಆದ್ಯತೆಗಳನ್ನು ಚರ್ಚಿಸುವಾಗ, ನನ್ನ ಅಭಿಪ್ರಾಯವನ್ನೇ ಸಮರ್ಥಿಸುವ ಬದಲು ಎಲ್ಲರ ಸಹಮತದೊಂದಿಗೆ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳಲು ಬಯಸುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Agreeableness 1: Resolution in Operational Handovers',
+      scenarioEn: 'When debating shift handovers, inventory priorities, or resource distribution, I prioritize collaborative problem-solving over defensive dispute.',
+      titleHi: 'सहमतिशीलता 1: परिचालन विवादों का शांतिपूर्ण समाधान',
+      scenarioHi: 'शिफ्ट हैंडओवर या संसाधनों के वितरण पर मतभेद होने पर, मैं विवाद करने के बजाय सहानुभूतिपूर्वक सहयोग और व्यावहारिक समाधान को प्राथमिकता देता/देती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 1: ಸರಬರಾಜು ಮತ್ತು ಸಂಪನ್ಮೂಲ ಹಂಚಿಕೆಯಲ್ಲಿ ಸೌಹಾರ್ದ',
+      scenarioKn: 'ಪಾಳಿ ಹಸ್ತಾಂತರ ಅಥವಾ ಸಂಪನ್ಮೂಲ ಹಂಚಿಕೆಯ ವಿಷಯದಲ್ಲಿ ಭಿನ್ನಾಭಿಪ್ರಾಯ ಬಂದಾಗ, ವಾದ ಮಾಡದೆ ಒಮ್ಮತದ ಪರಿಹಾರ ಕಂಡುಕೊಳ್ಳಲು ನಾನು ಶ್ರಮಿಸುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Agreeableness 1: Empathy in Design Critiques',
+      scenarioEn: 'When debating design directions or creative critiques, I prioritize constructive user empathy and alignment over defending my personal aesthetic choices.',
+      titleHi: 'सहमतिशीलता 1: डिज़ाइन समीक्षा में उपयोगकर्ता-सहानुभूति',
+      scenarioHi: 'डिज़ाइन समीक्षा या कलात्मक दृष्टिकोण पर चर्चा के दौरान, मैं अपनी व्यक्तिगत पसंद का बचाव करने के बजाय उपयोगकर्ता की जरूरतों और टीम की सहमति को प्राथमिकता देता/देती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 1: ವಿನ್ಯಾಸ ಚರ್ಚೆಯಲ್ಲಿ ಬಳಕೆದಾರರ ಹಿತಾಸಕ್ತಿ',
+      scenarioKn: 'ವಿನ್ಯಾಸದ ಮೇಲಿನ ಚರ್ಚೆಯಲ್ಲಿ, ನನ್ನ ವೈಯಕ್ತಿಕ ಶೈಲಿಯನ್ನು ಸಮರ್ಥಿಸುವ ಬದಲು ಬಳಕೆದಾರರ ಅಗತ್ಯತೆ ಮತ್ತು ತಂಡದ ಒಮ್ಮತಕ್ಕೆ ನಾನು ಆದ್ಯತೆ ನೀಡುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Agreeableness 1: Scholarly Respect in Peer Reviews',
+      scenarioEn: 'When debating theoretical frameworks or manuscript peer evaluations, I prioritize scholarly respect and open inquiry over dogmatic defense of my thesis.',
+      titleHi: 'सहमतिशीलता 1: सहकर्मी समीक्षा में अकादमिक सम्मान',
+      scenarioHi: 'सैद्धांतिक दृष्टिकोण या समकक्ष समीक्षा पर चर्चा के दौरान, मैं अपने विचार पर अड़े रहने के बजाय अकादमिक सम्मान और साझा समझ को प्राथमिकता देता/देती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 1: ಸಂಶೋಧನಾ ವಿಮರ್ಶೆಯಲ್ಲಿ ಪರಸ್ಪರ ಗೌರವ',
+      scenarioKn: 'ಸೈದ್ಧಾಂತಿಕ ಚರ್ಚೆಗಳಲ್ಲಿ, ನನ್ನ ನಿಲುವನ್ನೇ ಬಲವಂತಪಡಿಸುವ ಬದಲು ವಿದ್ವತ್ಪೂರ್ಣ ಗೌರವ ಮತ್ತು ತೆರೆದ ಮನಸ್ಸಿನ ಸಹಯೋಗಕ್ಕೆ ನಾನು ಆದ್ಯತೆ ನೀಡುತ್ತೇನೆ.',
+    },
+  },
+  ocean_a4: {
+    finance: {
+      titleEn: 'Agreeableness 4: Humility to Concede Financial Points',
+      scenarioEn: 'If a colleague presents a sounder financial model or cost-optimization approach during planning, I readily concede and champion their approach without pride.',
+      titleHi: 'सहमतिशीलता 4: बेहतर वित्तीय विचारों का सम्मान',
+      scenarioHi: 'यदि कोई सहकर्मी योजना के दौरान अधिक सटीक वित्तीय मॉडल या लागत बचत का विचार प्रस्तुत करता है, तो मैं सहर्ष उसे स्वीकार करता/करती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 4: ಉತ್ತಮ ಹಣಕಾಸು ಸಲಹೆಗಳ ನಮ್ರ ಸ್ವೀಕಾರ',
+      scenarioKn: 'ಯೋಜನೆಯ ಸಮಯದಲ್ಲಿ ಸಹೋದ್ಯೋಗಿಯೊಬ್ಬರು ಹೆಚ್ಚು ನಿಖರವಾದ ಹಣಕಾಸು ಮಾದರಿಯನ್ನು ಸೂಚಿಸಿದರೆ, ನಾನು ಯಾವುದೇ ಹಿಂಜರಿಕೆಯಿಲ್ಲದೆ ಅವರ ಆಲೋಚನೆಯನ್ನು ಸ್ವಾಗತಿಸುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Agreeableness 4: Embracing Superior Business Proposals',
+      scenarioEn: 'If a colleague presents a stronger market hypothesis or commercial strategy, I readily concede and champion their direction without pride.',
+      titleHi: 'सहमतिशीलता 4: बेहतर व्यावसायिक रणनीतियों का समर्थन',
+      scenarioHi: 'यदि कोई सहकर्मी अधिक प्रभावी बाजार रणनीति या व्यावसायिक दृष्टिकोण प्रस्तुत करता है, तो मैं खुशी से उनका समर्थन करता/करती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 4: ಉತ್ತಮ ಮಾರುಕಟ್ಟೆ ತಂತ್ರಜ್ಞಾನಗಳ ಪ್ರೋತ್ಸಾಹ',
+      scenarioKn: 'ಸಹೋದ್ಯೋಗಿಯೊಬ್ಬರು ಹೆಚ್ಚು ಪರಿಣಾಮಕಾರಿ ಮಾರುಕಟ್ಟೆ ಕಾರ್ಯತಂತ್ರವನ್ನು ಮುಂದಿಟ್ಟಾಗ, ನಾನು ಮುಕ್ತ ಮನಸ್ಸಿನಿಂದ ಅದನ್ನು ಒಪ್ಪಿಕೊಂಡು ಪ್ರೋತ್ಸಾಹಿಸುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Agreeableness 4: Adopting Better Logistics Workflows',
+      scenarioEn: 'If a colleague proposes a more efficient logistical routing or dispatch procedure, I readily concede and help implement their plan without ego.',
+      titleHi: 'सहमतिशीलता 4: बेहतर परिचालन सुझावों का स्वागत',
+      scenarioHi: 'यदि कोई सहकर्मी अधिक कुशल आपूर्ति या लॉजिस्टिक्स प्रक्रिया का सुझाव देता है, तो मैं तुरंत उनके सुझाव को स्वीकार कर लागू करने में मदद करता/करती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 4: ವೇಗದ ಸರಬರಾಜು ಯೋಜನೆಗಳ ಬೆಂಬಲ',
+      scenarioKn: 'ಸಹೋದ್ಯೋಗಿಯೊಬ್ಬರು ಹೆಚ್ಚು ವೇಗದ ಸಾಗಾಟ ಅಥವಾ ದಾಸ್ತಾನು ನಿರ್ವಹಣಾ ವಿಧಾನವನ್ನು ಪ್ರಸ್ತಾಪಿಸಿದರೆ, ನಾನು ಸಂತೋಷದಿಂದ ಅವರ ವಿಧಾನವನ್ನು ಬೆಂಬಲಿಸುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Agreeableness 4: Embracing Superior UX Solutions',
+      scenarioEn: 'If a peer designs a more intuitive user interaction pattern or visual hierarchy, I readily concede and embrace their solution without ego.',
+      titleHi: 'सहमतिशीलता 4: बेहतर यूआई/यूएक्स समाधानों का स्वागत',
+      scenarioHi: 'यदि कोई सहकर्मी अधिक सहज और आकर्षक इंटरैक्शन डिज़ाइन प्रस्तुत करता है, तो मैं बिना किसी संकोच के उनके विचार को अपनाता/करती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 4: ಉತ್ತಮ ವಿನ್ಯಾಸ ಪರಿಹಾರಗಳ ಸಂತಸದ ಸ್ವೀಕಾರ',
+      scenarioKn: 'ಸಹೋದ್ಯೋಗಿ ಬಳಕೆದಾರರಿಗೆ ಹೆಚ್ಚು ಸುಲಭವಾದ ವಿನ್ಯಾಸ ಶೈಲಿಯನ್ನು ರಚಿಸಿದಾಗ, ನಾನು ಯಾವುದೇ ಅಹಂಕಾರವಿಲ್ಲದೆ ಅವರ ವಿನ್ಯಾಸವನ್ನು ಒಪ್ಪಿಕೊಳ್ಳುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Agreeableness 4: Openness to Rigorous Peer Critique',
+      scenarioEn: 'If a peer or reviewer points out a more rigorous analytical proof or experimental control, I readily concede and integrate their refinement without ego.',
+      titleHi: 'सहमतिशीलता 4: सूक्ष्म वैज्ञानिक सुधारों का सहर्ष स्वागत',
+      scenarioHi: 'यदि कोई समीक्षक या साथी शोधकर्ता अधिक सटीक सांख्यिकीय विधि या तर्क प्रस्तुत करता है, तो मैं तुरंत उसे स्वीकार कर अपने शोध में शामिल करता/करती हूँ।',
+      titleKn: 'ಸೌಹಾರ್ದತೆ 4: ನಿಖರ ವೈಜ್ಞಾನಿಕ ಸಲಹೆಗಳ ಮುಕ್ತ ಸ್ವಾಗತ',
+      scenarioKn: 'ಸಹ-ಸಂಶೋಧಕರು ಹೆಚ್ಚು ಸೂಕ್ತವಾದ ವಿಶ್ಲೇಷಣಾ ವಿಧಾನವನ್ನು ಸೂಚಿಸಿದಾಗ, ನಾನು ಸಂತೋಷದಿಂದ ಅದನ್ನು ಸ್ವೀಕರಿಸಿ ಸಂಶೋಧನೆಯಲ್ಲಿ ಅಳವಡಿಸುತ್ತೇನೆ.',
+    },
+  },
+  ocean_n1: {
+    finance: {
+      titleEn: 'Emotional Stability 1: Composure During Fiscal Emergencies',
+      scenarioEn: 'When high-stakes financial discrepancies or critical audit emergencies arise, I stay emotionally calm and think clearly without panic.',
+      titleHi: 'भावनात्मक स्थिरता 1: वित्तीय संकट में शांत मन',
+      scenarioHi: 'जब किसी महत्वपूर्ण वित्तीय विसंगति या आपातकालीन ऑडिट की स्थिति आती है, तो मैं घबराने के बजाय पूरी तरह शांत रहकर स्पष्ट रूप से सोचता/सोचती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 1: ಹಣಕಾಸಿನ ಬಿಕ್ಕಟ್ಟಿನಲ್ಲಿ ಸಂಯಮ',
+      scenarioKn: 'ಅನಿರೀಕ್ಷಿತ ಹಣಕಾಸು ವ್ಯತ್ಯಾಸಗಳು ಅಥವಾ ತುರ್ತು ಲೆಕ್ಕಪರಿಶೋಧನೆ ಎದುರಾದಾಗ, ನಾನು ಆತಂಕಗೊಳ್ಳದೆ ಶಾಂತರಾಗಿ ಯೋಚಿಸುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Emotional Stability 1: Composure During Client Escalations',
+      scenarioEn: 'When major client escalations or business emergencies threaten high-value deals, I stay emotionally calm and think clearly without panic.',
+      titleHi: 'भावनात्मक स्थिरता 1: व्यावसायिक संकट में शांति',
+      scenarioHi: 'जब कोई बड़ा क्लाइंट संकट या व्यावसायिक आपातकाल उत्पन्न होता है, तो मैं घबराने के बजाय संयम से तर्कसंगत निर्णय लेता/लेती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 1: ವ್ಯಾಪಾರ ಬಿಕ್ಕಟ್ಟಿನಲ್ಲಿ ಸ್ಥಿರತೆ',
+      scenarioKn: 'ಪ್ರಮುಖ ಕ್ಲೈಂಟ್ ಸಮಸ್ಯೆಗಳು ಅಥವಾ ತುರ್ತು ವ್ಯಾಪಾರ ಸವಾಲುಗಳು ಎದುರಾದಾಗ, ನಾನು ಆತಂಕಗೊಳ್ಳದೆ ಸ್ಪಷ್ಟವಾಗಿ ಯೋಚಿಸುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Emotional Stability 1: Composure During Supply Disruptions',
+      scenarioEn: 'When major supply disruptions or distribution bottlenecks paralyze the workflow, I stay emotionally calm and think clearly without panic.',
+      titleHi: 'भावनात्मक स्थिरता 1: परिचालन रुकावटों में धैर्य',
+      scenarioHi: 'जब आपूर्ति श्रृंखला में बड़ा व्यवधान या गंभीर लॉजिस्टिक्स संकट आता है, तो मैं घबराने के बजाय शांत रहकर परिचालन बहाल करने पर ध्यान देता/देती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 1: ಸರಬರಾಜು ಅಡೆತಡೆಗಳಲ್ಲಿ ಧೈರ್ಯ',
+      scenarioKn: 'ಪೂರೈಕೆ ಸರಪಳಿಯಲ್ಲಿ ದಿಢೀರ್ ಅಡಚಣೆ ಅಥವಾ ವಿತರಣಾ ಬಿಕ್ಕಟ್ಟು ಉಂಟಾದಾಗ, ನಾನು ಶಾಂತರಾಗಿ ಪರಿಸ್ಥಿತಿ ನಿಭಾಯಿಸುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Emotional Stability 1: Composure During Launch Defects',
+      scenarioEn: 'When critical user flow defects or client design rejections occur right before launch, I stay emotionally calm and think clearly without panic.',
+      titleHi: 'भावनात्मक स्थिरता 1: डिज़ाइन संकट में संतुलन',
+      scenarioHi: 'जब लॉन्च से ठीक पहले कोई गंभीर यूआई समस्या या क्लाइंट की अस्वीकृति सामने आती है, तो मैं घबराने के बजाय शांत रहकर सुधार करता/करती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 1: ಬಿಡುಗಡೆ ಮುನ್ನ ಎದುರಾಗುವ ಸವಾಲುಗಳಲ್ಲಿ ಸಂಯಮ',
+      scenarioKn: 'ಪ್ರಾಜೆಕ್ಟ್ ಬಿಡುಗಡೆಗೆ ಮುನ್ನ ಪ್ರಮುಖ ವಿನ್ಯಾಸ ದೋಷಗಳು ಕಂಡುಬಂದಾಗ, ನಾನು ಗಲಿಬಿಲಿಗೊಳ್ಳದೆ ಶಾಂತರಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Emotional Stability 1: Composure During Research Crises',
+      scenarioEn: 'When experimental anomalies occur or tight grant submission deadlines collapse, I stay emotionally calm and think clearly without panic.',
+      titleHi: 'भावनात्मक स्थिरता 1: शोध संकट में मानसिक संतुलन',
+      scenarioHi: 'जब प्रयोग में अप्रत्याशित विसंगति आ जाए या ग्रांट जमा करने की समय-सीमा संकट में हो, तो मैं घबराने के बजाय शांत मन से समाधान निकालता/निकालती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 1: ಸಂಶೋಧನಾ ಬಿಕ್ಕಟ್ಟಿನಲ್ಲಿ ಸಮಾಧಾನ',
+      scenarioKn: 'ಸಂಶೋಧನಾ ಪ್ರಯೋಗಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ದೋಷಗಳು ಅಥವಾ ಅನುದಾನ ಸಲ್ಲಿಕೆಯ ತುರ್ತು ಗಡುವು ಎದುರಾದಾಗ, ನಾನು ಧೃತಿಗೆಡದೆ ಸಮಾಧಾನದಿಂದ ಯೋಚಿಸುತ್ತೇನೆ.',
+    },
+  },
+  ocean_n2: {
+    finance: {
+      titleEn: 'Emotional Stability 2: Constructive Audit Feedback Resilience',
+      scenarioEn: 'When an auditor or senior leader delivers blunt criticism on my financial reports or models, I process it objectively without feeling defensive.',
+      titleHi: 'भावनात्मक स्थिरता 2: वित्तीय समीक्षा को सकारात्मक लेना',
+      scenarioHi: 'जब कोई ऑडिटर या वरिष्ठ अधिकारी मेरे वित्तीय मॉडल या रिपोर्ट पर कड़ी समीक्षा करता है, तो मैं बचाव करने के बजाय उसे निष्पक्ष रूप से सुधार के लिए अपनाता/करती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 2: ಹಣಕಾಸು ವಿಮರ್ಶೆ ಸ್ವೀಕಾರ',
+      scenarioKn: 'ನನ್ನ ಹಣಕಾಸು ವರದಿಗಳು ಅಥವಾ ಲೆಕ್ಕಪತ್ರದ ಮೇಲೆ ಹಿರಿಯರು ಕಟುವಾದ ಟೀಕೆ ಮಾಡಿದಾಗ, ನಾನು ಅಸಮಾಧಾನಗೊಳ್ಳದೆ ವಾಸ್ತವಿಕವಾಗಿ ಸ್ವೀಕರಿಸುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Emotional Stability 2: Constructive Business Critique Reception',
+      scenarioEn: 'When stakeholders deliver blunt criticism on my business proposal or performance numbers, I process it objectively without feeling defensive.',
+      titleHi: 'भावनात्मक स्थिरता 2: व्यावसायिक समीक्षा को निष्पक्ष लेना',
+      scenarioHi: 'जब हितधारक मेरे व्यावसायिक प्रस्ताव या रणनीति पर कड़ी आलोचना करते हैं, तो मैं नाराज होने के बजाय उसे वस्तुनिष्ठ रूप से स्वीकार करता/करती हूँ।',
+      titleKn: 'भावनात्मक स्थिरता 2: ವ್ಯಾಪಾರ ಪ್ರಸ್ತಾಪಗಳ ಮೇಲಿನ ಟೀಕೆ ಸ್ವೀಕಾರ',
+      scenarioKn: 'ನನ್ನ ವ್ಯಾಪಾರ ಪ್ರಸ್ತಾಪ ಅಥವಾ ಕಾರ್ಯತಂತ್ರದ ಬಗ್ಗೆ ನಾಯಕರು ಕಟು ಟೀಕೆ ಮಾಡಿದಾಗ, ನಾನು ಆತ್ಮರಕ್ಷಣೆಗೆ ಇಳಿಯದೆ ವಸ್ತುನಿಷ್ಠವಾಗಿ ಸ್ವೀಕರಿಸುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Emotional Stability 2: Operational Feedback Resilience',
+      scenarioEn: 'When management or safety officers deliver blunt feedback on my operational workflows or plant logistics, I process it objectively without feeling defensive.',
+      titleHi: 'भावनात्मक स्थिरता 2: परिचालन प्रतिक्रिया में संतुलन',
+      scenarioHi: 'जब प्रबंधन या सुरक्षा अधिकारी मेरी परिचालन प्रक्रिया या लॉजिस्टिक्स योजना पर कड़ी प्रतिक्रिया देते हैं, तो मैं उसे सुधार के अवसर के रूप में स्वीकार करता/करती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 2: ಕಾರ್ಯಾಚರಣೆ ತಿದ್ದುಪಡಿಗಳ ಸ್ವೀಕಾರ',
+      scenarioKn: 'ನನ್ನ ಕಾರ್ಯಾಚರಣೆ ಅಥವಾ ಸರಬರಾಜು ಯೋಜನೆಗಳ ಮೇಲೆ ಕಟ್ಟುನಿಟ್ಟಿನ ಟೀಕೆಗಳು ಬಂದಾಗ, ನಾನು ಕೋಪಗೊಳ್ಳದೆ ಸಕಾರಾತ್ಮಕವಾಗಿ ಸ್ವೀಕರಿಸುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Emotional Stability 2: Design Critique Resilience',
+      scenarioEn: 'When clients or teammates deliver blunt criticism on my visual concepts or UX wireframes, I process it objectively without feeling defensive.',
+      titleHi: 'भावनात्मक स्थिरता 2: कलात्मक आलोचना में संतुलन',
+      scenarioHi: 'जब क्लाइंट या टीम के सदस्य मेरे डिज़ाइन या यूआई वायरफ्रेम पर कड़ी आलोचना करते हैं, तो मैं आहत होने के बजाय उसे उपयोगिता सुधारने का माध्यम मानता/मानती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 2: ವಿನ್ಯಾಸ ವಿಮರ್ಶೆಗಳನ್ನು ಸಕಾರಾತ್ಮಕವಾಗಿ ಸ್ವೀಕರಿಸುವುದು',
+      scenarioKn: 'ನನ್ನ ವಿನ್ಯಾಸಗಳು ಅಥವಾ ಯುಐ ಪರಿಕಲ್ಪನೆಗಳ ಬಗ್ಗೆ ಕ್ಲೈಂಟ್‌ಗಳು ಕಟು ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಿದಾಗ, ನಾನು ಬೇಸರಗೊಳ್ಳದೆ ಸುಧಾರಣೆಗೆ ಬಳಸಿಕೊಳ್ಳುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Emotional Stability 2: Peer Review Resilience',
+      scenarioEn: 'When anonymous peer reviewers or thesis advisors deliver harsh critiques of my manuscript methodology, I process it objectively without feeling defensive.',
+      titleHi: 'भावनात्मक स्थिरता 2: शोध समीक्षा को परिपक्वता से लेना',
+      scenarioHi: 'जब शोध समीक्षक या सलाहकार मेरे शोध पत्र और कार्यपद्धति पर कड़ी आपत्ति जताते हैं, तो मैं रक्षात्मक होने के बजाय अकादमिक सुधार के रूप में देखता/देखती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 2: ಸಂಶೋಧನಾ ವಿಮರ್ಶೆಗಳ ಪ್ರಬುದ್ಧ ಸ್ವೀಕಾರ',
+      scenarioKn: 'ನನ್ನ ಸಂಶೋಧನಾ ಪ್ರಬಂಧ ಅಥವಾ ವಿಧಾನದ ಮೇಲೆ ತಜ್ಞರು ಕಠಿಣ ಟೀಕೆಗಳನ್ನು ನೀಡಿದಾಗ, ನಾನು ಅಸಮಾಧಾನಗೊಳ್ಳದೆ ವಿದ್ವತ್ಪೂರ್ಣವಾಗಿ ಸರಿಪಡಿಸಿಕೊಳ್ಳುತ್ತೇನೆ.',
+    },
+  },
+  ocean_n6: {
+    finance: {
+      titleEn: 'Emotional Stability 6: Patience with Compliance Queues',
+      scenarioEn: 'I maintain an even temper when dealing with sluggish banking portals, multi-tier compliance clearances, or slow audit sign-offs.',
+      titleHi: 'भावनात्मक स्थिरता 6: अनुपालन औपचारिकताओं में धैर्य',
+      scenarioHi: 'धीमे बैंकिंग पोर्टल, बहुस्तरीय अनुपालन औपचारिकताओं या ऑडिट की देरी का सामना करते हुए भी मेरा धैर्य और स्वभाव संतुलित रहता है।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 6: ಬ್ಯಾಂಕಿಂಗ್ ಪ್ರಕ್ರಿಯೆಗಳಲ್ಲಿ ತಾಳ್ಮೆ',
+      scenarioKn: 'ನಿಧಾನಗತಿಯ ಬ್ಯಾಂಕಿಂಗ್ ಪೋರ್ಟಲ್‌ಗಳು ಅಥವಾ ಬಹು-ಹಂತದ ಅನುಮೋದನೆಗಳಿದ್ದರೂ ಸಹ ನಾನು ಸಂಯಮ ಮತ್ತು ಸಹನೆಯಿಂದ ವರ್ತಿಸುತ್ತೇನೆ.',
+    },
+    business: {
+      titleEn: 'Emotional Stability 6: Navigating Red Tape with Equanimity',
+      scenarioEn: 'I maintain an even temper when navigating administrative red tape, sluggish contract sign-offs, or delayed partner responses.',
+      titleHi: 'भावनात्मक स्थिरता 6: प्रशासनिक देरी में संयम',
+      scenarioHi: 'कागजी औपचारिकताओं, अनुबंधों में देरी या भागीदारों की सुस्त प्रतिक्रिया के बीच भी मैं शांत और संयमित बना/बनी रहती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 6: ಆಡಳಿತಾತ್ಮಕ ವಿಳಂಬಗಳಲ್ಲಿ ಸಂಯಮ',
+      scenarioKn: 'ಆಡಳಿತಾತ್ಮಕ ವಿಳಂಬಗಳು ಅಥವಾ ನಿಧಾನಗತಿಯ ಒಪ್ಪಂದ ಪ್ರಕ್ರಿಯೆಗಳ ನಡುವೆಯೂ ನಾನು ತಾಳ್ಮೆ ಮತ್ತು ಸಮಾಧಾನ ಕಾಯ್ದುಕೊಳ್ಳುತ್ತೇನೆ.',
+    },
+    operations: {
+      titleEn: 'Emotional Stability 6: Patience with Logistics Delays',
+      scenarioEn: 'I maintain an even temper when handling vendor dispatch delays, customs paperwork holdups, or slow logistics partners.',
+      titleHi: 'भावनात्मक स्थिरता 6: लॉजिस्टिक्स देरी में धैर्य',
+      scenarioHi: 'विक्रेताओं की डिलीवरी में देरी, सीमा शुल्क की कागजी कार्रवाई या लॉजिस्टिक्स समस्याओं के दौरान भी मैं धैर्यपूर्वक काम करता/करती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 6: ಸಾಗಾಟ ವಿಳಂಬಗಳ ನಡುವೆ ಸಮಾಧಾನ',
+      scenarioKn: 'ಸರಕು ವಿಳಂಬಗಳು ಅಥವಾ ಕಸ್ಟಮ್ಸ್ ದಾಖಲೆಗಳ ತೊಡಕುಗಳ ನಡುವೆಯೂ ನಾನು ತಾಳ್ಮೆ ಕಳೆದುಕೊಳ್ಳದೆ ಶಾಂತರಾಗಿ ಕೆಲಸ ಮುಂದುವರಿಸುತ್ತೇನೆ.',
+    },
+    design: {
+      titleEn: 'Emotional Stability 6: Patience with Iterative Revisions',
+      scenarioEn: 'I maintain an even temper when handling multi-round stakeholder change requests, delayed assets, or rendering bottlenecks.',
+      titleHi: 'भावनात्मक स्थिरता 6: बार-बार बदलाव के अनुरोधों में धैर्य',
+      scenarioHi: 'हितधारकों के बार-बार बदलाव के अनुरोध, धीमी रेंडरिंग या सामग्री में देरी के बावजूद मैं धैर्य और सकारात्मक रुख बनाए रखता/रहती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 6: ಪುನರಾವರ್ತಿತ ಬದಲಾವಣೆಗಳಲ್ಲಿ ತಾಳ್ಮೆ',
+      scenarioKn: 'ಪಾಲುದಾರರ ಪದೇ ಪದೇ ಬದಲಾಗುವ ಬೇಡಿಕೆಗಳು ಅಥವಾ ಪ್ರಕ್ರಿಯೆ ವಿಳಂಬಗಳಿದ್ದರೂ ಸಹ ನಾನು ತಾಳ್ಮೆ ಮತ್ತು ಉತ್ಸಾಹದಿಂದ ಕೆಲಸ ಮಾಡುತ್ತೇನೆ.',
+    },
+    academic: {
+      titleEn: 'Emotional Stability 6: Patience with Academic Cycles',
+      scenarioEn: 'I maintain an even temper when dealing with prolonged peer-review cycles, institutional ethics delays, or slow grant disbursements.',
+      titleHi: 'भावनात्मक स्थिरता 6: शोध समीक्षा के लंबे दौर में धैर्य',
+      scenarioHi: 'शोध समीक्षा के लंबे दौर, संस्थागत अनुमतियों में देरी या अनुदान मिलने में विलंब के दौरान भी मैं धैर्यपूर्वक निरंतरता बनाए रखता/रहती हूँ।',
+      titleKn: 'ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ 6: ದೀರ್ಘ ಸಂಶೋಧನಾ ಪ್ರಕ್ರಿಯೆಗಳಲ್ಲಿ ತಾಳ್ಮೆ',
+      scenarioKn: 'ದೀರ್ಘ ಸಂಶೋಧನಾ ಪರಿಶೀಲನೆ ಅಥವಾ ಸಾಂಸ್ಥಿಕ ಅನುಮೋದನೆಗಳ ವಿಳಂಬದ ನಡುವೆಯೂ ನಾನು ತಾಳ್ಮೆ ಮತ್ತು ಸಮಾಧಾನದಿಂದ ಮುನ್ನಡೆಯುತ್ತೇನೆ.',
+    },
+  },
+};
+
+// ============================================================================
 // 1. WORKING PROFESSIONAL TRACK: OCEAN (30 Questions: 6 per Category) + STAR (4 Questions)
 // ============================================================================
 
 export function buildProfessionalQuestions(
   roleTarget: string,
   targetIndustry: string,
-  scenarioContext?: string
+  scenarioContext?: string,
+  profileContext?: ICandidateProfileContext
 ): IDualPaneQuestion[] {
+  const domain = resolveDomain(profileContext || { currentRole: roleTarget, targetIndustry });
+  const earlyCareer = isEarlyCareer(profileContext);
   const oceanQuestions: IDualPaneQuestion[] = [
     // -------------------------------------------------------------
     // OPENNESS TO EXPERIENCE (6 Questions: O1 - O6)
@@ -968,29 +1496,51 @@ export function buildProfessionalQuestions(
     const isRationaleRequired = q.questionId.endsWith('6');
     const isOptionalExplanation = !isRationaleRequired;
 
+    // Apply domain variant if available for this question
+    const variant = DOMAIN_QUESTION_VARIANTS[q.questionId]?.[domain];
+    const finalEnTitle = variant?.titleEn || q.en.title;
+    const finalEnScenario = variant?.scenarioEn || q.en.scenario;
+    const finalHiTitle = variant?.titleHi || q.hi.title;
+    const finalHiScenario = variant?.scenarioHi || q.hi.scenario;
+    const finalKnTitle = variant?.titleKn || q.kn.title;
+    const finalKnScenario = variant?.scenarioKn || q.kn.scenario;
+
     // Neutral prompts without leaking internal dimension labels (OCEAN) or STAR frameworks
+    // Calibrated dynamically for Students/Freshers (academic/internship) vs Experienced Professionals (workplace)
     const enPrompt = isRationaleRequired
-      ? 'Reflect on your rating for this statement. Share a concrete real-world experience that demonstrates why you chose this response—what was the challenge, how did you respond, and what was the outcome?'
+      ? earlyCareer
+        ? 'Reflect on your rating for this statement. Share a concrete academic project, internship, or collaborative team experience that demonstrates why you chose this response—what was the challenge, how did you respond, and what was the outcome?'
+        : 'Reflect on your rating for this statement. Share a concrete real-world workplace experience that demonstrates why you chose this response—what was the challenge, how did you respond, and what was the outcome?'
       : 'Share a brief real-world example or context explaining why you chose this rating (optional).';
 
     const enPlaceholder = isRationaleRequired
-      ? 'Required: Detail what happened, the action you took, and the outcome (at least 15 characters)...'
+      ? earlyCareer
+        ? 'Required: Detail what happened in your project/internship, the action you took, and the outcome (at least 15 characters)...'
+        : 'Required: Detail what happened in your workplace, the action you took, and the outcome (at least 15 characters)...'
       : 'Optional: Share a brief real-life example or reason explaining your rating...';
 
     const hiPrompt = isRationaleRequired
-      ? 'इस कथन पर अपनी रेटिंग पर विचार करें और कार्यस्थल का एक वास्तविक अनुभव साझा करें—चुनौती क्या थी, आपने कैसे संभाला, और उसका क्या परिणाम रहा?'
+      ? earlyCareer
+        ? 'इस कथन पर अपनी रेटिंग पर विचार करें और कॉलेज प्रोजेक्ट, इंटर्नशिप या टीम वर्क का एक वास्तविक अनुभव साझा करें—चुनौती क्या थी, आपने कैसे संभाला, और उसका क्या परिणाम रहा?'
+        : 'इस कथन पर अपनी रेटिंग पर विचार करें और कार्यस्थल का एक वास्तविक अनुभव साझा करें—चुनौती क्या थी, आपने कैसे संभाला, और उसका क्या परिणाम रहा?'
       : 'अपनी रेटिंग को स्पष्ट करने के लिए यदि चाहें तो कार्यस्थल का कोई संक्षिप्त वास्तविक उदाहरण या संदर्भ साझा करें (ऐच्छिक)।';
 
     const hiPlaceholder = isRationaleRequired
-      ? 'अनिवार्य: अपने वास्तविक अनुभव, उठाए गए कदम और परिणाम का विवरण यहाँ लिखें (कम से कम 15 अक्षर)...'
+      ? earlyCareer
+        ? 'अनिवार्य: अपने प्रोजेक्ट/इंटर्नशिप का अनुभव, उठाए गए कदम और परिणाम यहाँ लिखें (कम से कम 15 अक्षर)...'
+        : 'अनिवार्य: अपने वास्तविक अनुभव, उठाए गए कदम और परिणाम का विवरण यहाँ लिखें (कम से कम 15 अक्षर)...'
       : 'वैकल्पिक: अपनी रेटिंग के पीछे का संक्षिप्त कारण या उदाहरण यहाँ लिखें...';
 
     const knPrompt = isRationaleRequired
-      ? 'ಈ ಹೇಳಿಕೆಗೆ ನೀಡಿದ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸಲು ನಿಮ್ಮ ಕೆಲಸದ ಸ್ಥಳದ ನೈಜ ಅನುಭವವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ—ಸವಾಲು ಏನಾಗಿತ್ತು, ನೀವು ಹೇಗೆ ಪ್ರತಿಕ್ರಿಯಿಸಿದಿರಿ ಮತ್ತು ಫಲಿತಾಂಶವೇನು?'
+      ? earlyCareer
+        ? 'ಈ ಹೇಳಿಕೆಗೆ ನೀಡಿದ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸಲು ನಿಮ್ಮ ಕಾಲೇಜು ಪ್ರಾಜೆಕ್ಟ್, ಇಂಟರ್ನ್‌ಶಿಪ್ ಅಥವಾ ತಂಡದ ನೈಜ ಅನುಭವವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ—ಸವಾಲು ಏನಾಗಿತ್ತು, ನೀವು ಹೇಗೆ ಪ್ರತಿಕ್ರಿಯಿಸಿದಿರಿ ಮತ್ತು ಫಲಿತಾಂಶವೇನು?'
+        : 'ಈ ಹೇಳಿಕೆಗೆ ನೀಡಿದ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸಲು ನಿಮ್ಮ ಕೆಲಸದ ಸ್ಥಳದ ನೈಜ ಅನುಭವವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ—ಸವಾಲು ಏನಾಗಿತ್ತು, ನೀವು ಹೇಗೆ ಪ್ರತಿಕ್ರಿಯಿಸಿದಿರಿ ಮತ್ತು ಫಲಿತಾಂಶವೇನು?'
       : 'ನಿಮ್ಮ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸಲು ಕೆಲಸದ ಸ್ಥಳದ ಯಾವುದೇ ಸಂಕ್ಷಿಪ್ತ ನೈಜ ಉದಾಹರಣೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ (ಐಚ್ಛಿಕ).';
 
     const knPlaceholder = isRationaleRequired
-      ? 'ಕಡ್ಡಾಯ: ಸನ್ನಿವೇಶ, ನಿಮ್ಮ ಕಾರ್ಯ ಮತ್ತು ಅಂತಿಮ ಫಲಿತಾಂಶವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ (ಕನಿಷ್ಠ 15 ಅಕ್ಷರಗಳು)...'
+      ? earlyCareer
+        ? 'ಕಡ್ಡಾಯ: ಪ್ರಾಜೆಕ್ಟ್/ಇಂಟರ್ನ್‌ಶಿಪ್ ಸನ್ನಿವೇಶ, ನಿಮ್ಮ ಕಾರ್ಯ ಮತ್ತು ಅಂತಿಮ ಫಲಿತಾಂಶವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ (ಕನಿಷ್ಠ 15 ಅಕ್ಷರಗಳು)...'
+        : 'ಕಡ್ಡಾಯ: ಸನ್ನಿವೇಶ, ನಿಮ್ಮ ಕಾರ್ಯ ಮತ್ತು ಅಂತಿಮ ಫಲಿತಾಂಶವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ (ಕನಿಷ್ಠ 15 ಅಕ್ಷರಗಳು)...'
       : 'ಐಚ್ಛಿಕ: ನಿಮ್ಮ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸುವ ಸಂಕ್ಷಿಪ್ತ ವಿವರವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ...';
 
     return {
@@ -1000,16 +1550,22 @@ export function buildProfessionalQuestions(
       isOptionalExplanation,
       en: {
         ...q.en,
+        title: finalEnTitle,
+        scenario: finalEnScenario,
         writtenPrompt: enPrompt,
         writtenPlaceholder: enPlaceholder,
       },
       hi: {
         ...q.hi,
+        title: finalHiTitle,
+        scenario: finalHiScenario,
         writtenPrompt: hiPrompt,
         writtenPlaceholder: hiPlaceholder,
       },
       kn: {
         ...q.kn,
+        title: finalKnTitle,
+        scenario: finalKnScenario,
         writtenPrompt: knPrompt,
         writtenPlaceholder: knPlaceholder,
       },
@@ -1028,7 +1584,8 @@ export function buildProfessionalQuestions(
 
 export function buildStudentQuestions(
   roleTarget?: string,
-  targetIndustry?: string
+  targetIndustry?: string,
+  profileContext?: ICandidateProfileContext
 ): IDualPaneQuestion[] {
   const mbtiQuestions: IDualPaneQuestion[] = [
     // -------------------------------------------------------------
@@ -1543,13 +2100,13 @@ export function buildStudentQuestions(
       idealEvidenceCriteria: 'Inclination towards tangible physical execution versus intellectual abstract research.',
       en: {
         title: 'Holland 1: Hands-on Building vs Analytical Investigation',
-        scenario: 'If choosing a core engineering internship, which assignment excites your natural curiosity?',
+        scenario: 'If choosing a core project or internship, which assignment excites your natural curiosity?',
         mcqOptions: [
           { id: 'R', text: 'Hands-on hardware assembly, network rigging, and tangible instrument deployment.', points: 4, rationaleCategory: 'Realistic' },
           { id: 'I', text: 'Mathematical modeling, algorithmic data analysis, and root-cause research.', points: 4, rationaleCategory: 'Investigative' },
         ],
         writtenPrompt: 'Explain your reasoning (Optional / Not Mandatory):',
-        writtenPlaceholder: 'Explain which technical flavor appeals to you more (optional)...',
+        writtenPlaceholder: 'Explain which flavor appeals to you more (optional)...',
       },
       hi: {
         title: 'हॉलैंड 1: व्यावहारिक निर्माण बनाम विश्लेषणात्मक शोध',

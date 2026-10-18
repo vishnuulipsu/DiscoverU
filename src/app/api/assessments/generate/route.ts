@@ -16,7 +16,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const { candidateName, currentRole, targetIndustry, testTrack, assessmentTrack, language } = body || {};
+    const {
+      candidateName,
+      candidateEmail,
+      dob,
+      gender,
+      country,
+      stateRegion,
+      educationLevel,
+      degreeQualification,
+      careerStage,
+      workExperience,
+      targetRoleField,
+      currentRole,
+      targetIndustry,
+      testTrack,
+      language,
+    } = body || {};
 
     if (!targetIndustry || !currentRole) {
       return NextResponse.json(
@@ -27,16 +43,22 @@ export async function POST(req: Request) {
 
     await connectToDatabase();
 
-    // Determine track: explicit assessmentTrack, or inferred from currentRole
-    const determinedTrack: 'professional' | 'student' =
-      assessmentTrack ||
-      (currentRole?.toLowerCase().includes('student') || currentRole?.toLowerCase().includes('fresher')
-        ? 'student'
-        : 'professional');
+    // Student Track is disabled. Always generate the Working Professional suite.
+    const determinedTrack = 'professional' as const;
 
     // Generate bespoke assessment dilemmas using AI Engine / Psychometric suites
     const generated = await generateAssessmentWithGemini({
       candidateName: candidateName || 'Candidate',
+      candidateEmail,
+      dob,
+      gender,
+      country,
+      stateRegion,
+      educationLevel,
+      degreeQualification,
+      careerStage,
+      workExperience,
+      targetRoleField,
       currentRole,
       targetIndustry,
       testTrack: testTrack || 'full',

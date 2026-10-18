@@ -60,9 +60,9 @@ export function Footer() {
                 <span>ಕನ್ನಡ (Kannada Localization)</span>
               </li>
             </ul>
-            <p className="text-[11px] text-gray-400 mt-2.5">
+            {/* <p className="text-[11px] text-gray-400 mt-2.5">
               Zero score penalty for language switches or simplification queries.
-            </p>
+            </p> */}
           </div>
 
           {/* Standards & Philosophy */}

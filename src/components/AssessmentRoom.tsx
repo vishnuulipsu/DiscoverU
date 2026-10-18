@@ -37,8 +37,10 @@ import {
   ArrowLeft,
   Calendar,
   MapPin,
-  Award
+  Award,
+  Lightbulb
 } from 'lucide-react';
+import { getSimplifiedQuestionInfo } from '@/lib/question-simplifier';
 import { SearchableSelect } from './SearchableSelect';
 import {
   COUNTRIES,
@@ -295,7 +297,8 @@ export function AssessmentRoom({
   // Input Mode: 'guided' (4 Fields: Situation, Task, Action, Result) vs 'freeform'
   const [responseMode, setResponseMode] = useState<'guided' | 'freeform'>('guided');
 
-  // Simplification State per question
+  // Simplification State per question and global toggle
+  const [globalSimplify, setGlobalSimplify] = useState(false);
   const [simplifiedMap, setSimplifiedMap] = useState<Record<string, boolean>>({});
 
   // Answers Map: questionId -> IQuestionResponse
@@ -318,7 +321,16 @@ export function AssessmentRoom({
 
   const currentQ = activeQuestions[currentIdx] || activeQuestions[0];
   const localizedContent = currentQ[language] || currentQ.en;
-  const isSimplified = !!simplifiedMap[currentQ.questionId];
+  const isSimplified = globalSimplify || !!simplifiedMap[currentQ.questionId];
+  const simplifiedInfo = getSimplifiedQuestionInfo(currentQ, language);
+
+  const toggleSimplify = (qId?: string) => {
+    const targetId = qId || currentQ.questionId;
+    setSimplifiedMap((prev) => ({
+      ...prev,
+      [targetId]: !prev[targetId],
+    }));
+  };
 
   // Helper to compose full rationale from 4 fields
   const composeRationale = (s: string, t: string, a: string, r: string) => {
@@ -753,7 +765,7 @@ export function AssessmentRoom({
   };
 
   const currentScenarioText = isSimplified
-    ? SIMPLIFIED_SCENARIOS[currentQ.questionId]?.[language] || localizedContent.scenario
+    ? simplifiedInfo.scenarioSummary || SIMPLIFIED_SCENARIOS[currentQ.questionId]?.[language] || localizedContent.scenario
     : localizedContent.scenario;
 
   const answeredCount = activeQuestions.filter((q) => {
@@ -1532,6 +1544,21 @@ export function AssessmentRoom({
               )}
             </div>
 
+            {/* Global Simplify Toggle */}
+            <button
+              type="button"
+              onClick={() => setGlobalSimplify(!globalSimplify)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                globalSimplify
+                  ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs ring-2 ring-amber-400/30'
+                  : 'bg-white text-gray-700 hover:text-amber-900 border-gray-200 hover:bg-amber-50/60'
+              }`}
+              title="Toggle plain language / simplified version for all questions"
+            >
+              <Lightbulb className={`w-3.5 h-3.5 ${globalSimplify ? 'text-amber-600 fill-amber-500' : 'text-amber-500'}`} />
+              <span>{globalSimplify ? 'Simplified Mode ON' : 'Simplify Questions'}</span>
+            </button>
+
             {/* Language Switcher */}
             <div className="flex items-center bg-gray-100 border border-gray-200 rounded-xl p-1 text-xs">
               {(['en', 'hi', 'kn'] as const).map((l) => (
@@ -1660,10 +1687,40 @@ export function AssessmentRoom({
                 {currentQ.subCategory || currentQ.competencyName}
               </span>
             </div>
-            <span className="text-xs font-medium text-gray-500">
-              Single-tap response • Immediate progression
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => toggleSimplify(currentQ.questionId)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border ${
+                  isSimplified
+                    ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/20'
+                    : 'bg-white text-gray-700 hover:bg-amber-50 border-gray-200'
+                }`}
+                title="Explain question in plain, simple everyday words"
+              >
+                <Lightbulb className={`w-3.5 h-3.5 ${isSimplified ? 'text-amber-600 fill-amber-500' : 'text-amber-500'}`} />
+                <span>{isSimplified ? 'Standard View' : 'Simplify Question'}</span>
+              </button>
+              <span className="text-xs font-medium text-gray-500 hidden sm:inline">
+                Single-tap response • Immediate progression
+              </span>
+            </div>
           </div>
+
+          {/* Simplified Question Helper Banner */}
+          {isSimplified && (
+            <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 flex items-start gap-2.5 leading-relaxed">
+              <Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 fill-amber-500" />
+              <div>
+                <span className="font-bold block text-amber-950 text-xs mb-0.5">
+                  {simplifiedInfo.scenarioTitle}
+                </span>
+                <p className="text-amber-900 font-medium">
+                  {simplifiedInfo.scenarioSummary}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Statement Box */}
           <div className="my-6 p-6 sm:p-8 rounded-2xl bg-slate-50 border border-slate-200 text-center">
@@ -1715,6 +1772,11 @@ export function AssessmentRoom({
                     <span className={`text-xs leading-snug ${isSelected ? 'font-bold' : 'font-medium text-gray-700'}`}>
                       {opt.text}
                     </span>
+                    {simplifiedInfo.simplifiedOptions?.[opt.id] && (
+                      <span className="mt-1 text-[11px] text-gray-500 font-normal leading-tight">
+                        ({simplifiedInfo.simplifiedOptions[opt.id]})
+                      </span>
+                    )}
                     {isSelected && (
                       <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> Selected
@@ -1746,16 +1808,42 @@ export function AssessmentRoom({
                 {currentQ.subCategory || currentQ.competencyName}
               </span>
             </div>
-            <span className="text-xs font-medium text-amber-800 bg-amber-100/60 px-2.5 py-0.5 rounded-md">
-              1 Incident Scenario • 4 Sequential Phases
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => toggleSimplify(currentQ.questionId)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border ${
+                  isSimplified
+                    ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/20'
+                    : 'bg-white text-gray-700 hover:bg-amber-50 border-gray-200'
+                }`}
+                title="Explain incident and question in plain, simple everyday words"
+              >
+                <Lightbulb className={`w-3.5 h-3.5 ${isSimplified ? 'text-amber-600 fill-amber-500' : 'text-amber-500'}`} />
+                <span>{isSimplified ? 'Standard View' : 'Simplify / In Simple Words'}</span>
+              </button>
+              <span className="text-xs font-medium text-amber-800 bg-amber-100/60 px-2.5 py-0.5 rounded-md hidden sm:inline">
+                1 Incident Scenario • 4 Sequential Phases
+              </span>
+            </div>
           </div>
 
           {/* Incident Scenario Card (Shared across S, T, A, R) */}
-          <div className="my-5 p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200">
-            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-gray-800 uppercase tracking-wider">
-              <BookOpen className="w-4 h-4 text-[var(--ulipsu-indigo)]" />
-              <span>Real-World Incident Scenario Context:</span>
+          <div className={`my-5 p-4 sm:p-5 rounded-2xl border transition ${
+            isSimplified ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-800 uppercase tracking-wider">
+                <BookOpen className="w-4 h-4 text-[var(--ulipsu-indigo)]" />
+                <span>
+                  {isSimplified ? simplifiedInfo.scenarioTitle : 'Real-World Incident Scenario Context:'}
+                </span>
+              </div>
+              {isSimplified && (
+                <span className="text-[11px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200">
+                  Plain Language Context
+                </span>
+              )}
             </div>
             <p className="text-gray-900 text-xs sm:text-sm leading-relaxed">
               {currentScenarioText}
@@ -1763,14 +1851,44 @@ export function AssessmentRoom({
           </div>
 
           {/* STAR Phase Prompt */}
-          <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-100 mb-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-[var(--ulipsu-indigo)] uppercase tracking-wider mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-[var(--ulipsu-amber)]" />
-              <span>{localizedContent.title || currentQ.competencyName}:</span>
+          <div className={`p-4 rounded-xl border mb-4 transition ${
+            isSimplified ? 'bg-amber-50/50 border-amber-200' : 'bg-indigo-50/70 border-indigo-100'
+          }`}>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-[var(--ulipsu-indigo)] uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-[var(--ulipsu-amber)]" />
+                <span>
+                  {isSimplified && simplifiedInfo.subjectivePromptTitle
+                    ? simplifiedInfo.subjectivePromptTitle
+                    : `${localizedContent.title || currentQ.competencyName}:`}
+                </span>
+              </div>
+              {isSimplified && (
+                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                  Plain Guidance
+                </span>
+              )}
             </div>
             <p className="text-gray-900 text-sm font-semibold leading-relaxed">
-              {localizedContent.writtenPrompt || currentScenarioText}
+              {isSimplified && simplifiedInfo.subjectivePromptGuide
+                ? simplifiedInfo.subjectivePromptGuide
+                : (localizedContent.writtenPrompt || currentScenarioText)}
             </p>
+
+            {/* Helpful Guiding Questions */}
+            {isSimplified && simplifiedInfo.helpfulQuestions && simplifiedInfo.helpfulQuestions.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-amber-200/70">
+                <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5 mb-2">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                  <span>Key questions to cover in your response:</span>
+                </span>
+                <ul className="space-y-1.5 text-xs text-gray-800 list-disc list-inside">
+                  {simplifiedInfo.helpfulQuestions.map((hq, i) => (
+                    <li key={i} className="leading-snug">{hq}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Subjective Textarea */}
@@ -1815,11 +1933,34 @@ export function AssessmentRoom({
                   {currentQ.subCategory || currentQ.competencyName}
                 </span>
               </div>
-              <span className="text-[11px] text-gray-500 font-medium">Select your natural tendency</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleSimplify(currentQ.questionId)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border ${
+                    isSimplified
+                      ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/20'
+                      : 'bg-white text-gray-700 hover:bg-amber-50 border-gray-200'
+                  }`}
+                  title="Explain choices in plain, simple everyday words"
+                >
+                  <Lightbulb className={`w-3.5 h-3.5 ${isSimplified ? 'text-amber-600 fill-amber-500' : 'text-amber-500'}`} />
+                  <span>{isSimplified ? 'Standard' : 'Simplify'}</span>
+                </button>
+                <span className="text-[11px] text-gray-500 font-medium hidden sm:inline">Select your natural tendency</span>
+              </div>
             </div>
 
             {/* Dilemma Prompt */}
-            <div className="my-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <div className={`my-4 p-4 rounded-xl border transition ${
+              isSimplified ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-200'
+            }`}>
+              {isSimplified && (
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 mb-1.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                  <span>{simplifiedInfo.scenarioTitle}</span>
+                </div>
+              )}
               <p className="text-gray-900 text-sm font-medium leading-relaxed">
                 {currentScenarioText}
               </p>
@@ -1858,6 +1999,11 @@ export function AssessmentRoom({
                       }`}>
                         {opt.text}
                       </p>
+                      {simplifiedInfo.simplifiedOptions?.[opt.id] && (
+                        <p className="text-[11px] text-gray-500 mt-1 font-normal italic">
+                          💡 {simplifiedInfo.simplifiedOptions[opt.id]}
+                        </p>
+                      )}
                     </div>
                     {isSelected && (
                       <div className="shrink-0 text-[var(--ulipsu-indigo)] font-bold text-xs flex items-center gap-1 mt-0.5">
@@ -1897,7 +2043,9 @@ export function AssessmentRoom({
                 <span>Explain your choice (Optional):</span>
               </div>
               <p className="text-emerald-900/90 font-normal">
-                You can write a short note explaining why this option fits you better, or simply leave this blank and move forward. Your choice alone is fully valid.
+                {isSimplified && simplifiedInfo.subjectivePromptGuide
+                  ? simplifiedInfo.subjectivePromptGuide
+                  : 'You can write a short note explaining why this option fits you better, or simply leave this blank and move forward. Your choice alone is fully valid.'}
               </p>
             </div>
 
@@ -2036,6 +2184,11 @@ export function AssessmentRoom({
                       >
                         {opt.text}
                       </p>
+                      {simplifiedInfo.simplifiedOptions?.[opt.id] && (
+                        <p className="text-[11px] text-gray-500 mt-1 font-normal italic">
+                          💡 {simplifiedInfo.simplifiedOptions[opt.id]}
+                        </p>
+                      )}
                     </div>
                     {isSelected && (
                       <div className="shrink-0 text-[var(--ulipsu-indigo)] font-bold text-xs flex items-center gap-1 mt-0.5">
@@ -2106,12 +2259,16 @@ export function AssessmentRoom({
                     <span>Connecting to your Step 1 choice: Option {selectedOptionObj.id}</span>
                   </div>
                   <p className="text-amber-900 font-normal">
-                    Explain why Option {selectedOptionObj.id} was your choice, or describe a real project/work situation where you faced a similar challenge in {currentIndustryObj.name}.
+                    {isSimplified && simplifiedInfo.subjectivePromptGuide
+                      ? simplifiedInfo.subjectivePromptGuide
+                      : `Explain why Option ${selectedOptionObj.id} was your choice, or describe a real project/work situation where you faced a similar challenge in ${currentIndustryObj.name}.`}
                   </p>
                 </div>
               ) : (
                 <div className="text-gray-600 italic">
-                  Tip: Choose an option in Step 1 on the left first. Then justify your reasoning or share a past experience here.
+                  {isSimplified && simplifiedInfo.subjectivePromptGuide
+                    ? simplifiedInfo.subjectivePromptGuide
+                    : 'Tip: Choose an option in Step 1 on the left first. Then justify your reasoning or share a past experience here.'}
                 </div>
               )}
             </div>

@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IMcqOption {
   id: string; // 'A', 'B', 'C', 'D'
   text: string;
+  simplifiedText?: string;
   points: number; // 1-5 rubric alignment
   rationaleCategory: string; // e.g. 'Proactive Collaboration', 'Process Adherence'
 }
@@ -10,8 +11,10 @@ export interface IMcqOption {
 export interface ILocalizedQuestionContent {
   title: string;
   scenario: string;
+  simplifiedScenario?: string;
   mcqOptions: IMcqOption[];
-  writtenPrompt: string; // Prompt for the right-hand text area
+  writtenPrompt: string;
+  simplifiedPrompt?: string;
   writtenPlaceholder: string;
 }
 
@@ -45,6 +48,7 @@ const McqOptionSchema = new Schema<IMcqOption>(
   {
     id: { type: String, required: true },
     text: { type: String, required: true },
+    simplifiedText: { type: String, default: '' },
     points: { type: Number, required: true },
     rationaleCategory: { type: String, required: true },
   },
@@ -55,8 +59,10 @@ const LocalizedContentSchema = new Schema<ILocalizedQuestionContent>(
   {
     title: { type: String, required: true },
     scenario: { type: String, required: true },
+    simplifiedScenario: { type: String, default: '' },
     mcqOptions: [McqOptionSchema],
     writtenPrompt: { type: String, required: true },
+    simplifiedPrompt: { type: String, default: '' },
     writtenPlaceholder: { type: String, required: true },
   },
   { _id: false }

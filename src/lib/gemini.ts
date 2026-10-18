@@ -338,7 +338,12 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
             ? 'ಸಮಸ್ಯೆಗಳ ಮೂಲ ಕಾರಣವನ್ನು ವಿವರವಾಗಿ ವಿಶ್ಲೇಷಿಸುವ ಸಾಮರ್ಥ್ಯ.'
             : 'Unpacks complex dependencies systematically before proposing remediation.',
         supportedStarExample:
-          input.answers[0]?.writtenRationale || 'Demonstrated clear root-cause triage in scenario analysis.',
+          input.answers[0]?.writtenRationale ||
+          (lang === 'hi'
+            ? 'परिदृश्य विश्लेषण में स्पष्ट मूल-कारण जाँच दिखाई दी।'
+            : lang === 'kn'
+            ? 'ಸನ್ನಿವೇಶದ ವಿಶ್ಲೇಷಣೆಯಲ್ಲಿ ಸ್ಪಷ್ಟ ಮೂಲ-ಕಾರಣ ಪರಿಶೀಲನೆ ಕಂಡುಬಂದಿದೆ.'
+            : 'Demonstrated clear root-cause triage in scenario analysis.'),
       },
       {
         title: lang === 'hi' ? 'पारदर्शी टीम संवाद' : lang === 'kn' ? 'ಪಾರದರ್ಶಕ ಸಂವಹನ' : 'High-Integrity Stakeholder Transparency',
@@ -349,7 +354,12 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
             ? 'ತಂಡದೊಂದಿಗೆ ಮುಕ್ತವಾಗಿ ಸವಾಲುಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳುವ ಶೈಲಿ.'
             : 'Proactively surfaces potential bottlenecks early to protect collective team delivery.',
         supportedStarExample:
-          input.answers[1]?.writtenRationale || 'Consistently articulated collaborative alignment.',
+          input.answers[1]?.writtenRationale ||
+          (lang === 'hi'
+            ? 'सहयोग और संरेखण को लगातार स्पष्ट किया।'
+            : lang === 'kn'
+            ? 'ಸಹಯೋಗ ಮತ್ತು ಹೊಂದಾಣಿಕೆಯನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ವಿವರಿಸಲಾಗಿದೆ.'
+            : 'Consistently articulated collaborative alignment.'),
       },
     ],
     challenges: [
@@ -385,9 +395,9 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
     ],
     workPreferences: [
       {
-        title: 'High-Ownership Autonomous Teams',
+        title: lang === 'hi' ? 'स्वायत्त एवं जिम्मेदार टीम' : lang === 'kn' ? 'ಸ್ವತಂತ್ರ ಮತ್ತು ಜವಾಬ್ದಾರಿಯುತ ತಂಡ' : 'High-Ownership Autonomous Teams',
         simplifiedTitle: lang === 'hi' ? 'स्वायत्त एवं जिम्मेदार टीम' : lang === 'kn' ? 'ಸ್ವತಂತ್ರ ಮತ್ತು ಜವಾಬ್ದಾರಿಯುತ ತಂಡ' : 'Autonomous Teams with Clear Goals',
-        hypothesisTitle: 'High-Ownership Autonomous Teams',
+        hypothesisTitle: lang === 'hi' ? 'स्वायत्त एवं जिम्मेदार टीम' : lang === 'kn' ? 'ಸ್ವತಂತ್ರ ಮತ್ತು ಜವಾಬ್ದಾರಿಯುತ ತಂಡ' : 'High-Ownership Autonomous Teams',
         environmentType: 'Decentralized Collaborative Pods',
         description:
           'Thrives in environments with clear objective metrics (OKRs), psychological safety, and direct ownership of outcomes.',
@@ -411,9 +421,9 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
             : 'In ambiguous settings, propose a 3-bullet priority list early to align stakeholders autonomously.',
       },
       {
-        title: 'Structured Knowledge Sharing',
+        title: lang === 'hi' ? 'संरचित ज्ञान साझाकरण' : lang === 'kn' ? 'ಜ್ಞಾನ ವಿನಿಮಯ' : 'Structured Knowledge Sharing',
         simplifiedTitle: lang === 'hi' ? 'संरचित ज्ञान साझाकरण' : lang === 'kn' ? 'ಜ್ಞಾನ ವಿನಿಮಯ' : 'Knowledge Sharing & Learning',
-        hypothesisTitle: 'Structured Knowledge Sharing',
+        hypothesisTitle: lang === 'hi' ? 'संरचित ज्ञान साझाकरण' : lang === 'kn' ? 'ಜ್ಞಾನ ವಿನಿಮಯ' : 'Structured Knowledge Sharing',
         environmentType: 'Continuous Learning Cultures',
         description:
           'Excels where peer code reviews, architectural RFCs, and post-mortems are treated as learning rituals.',
@@ -439,8 +449,8 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
     ],
     personalDevelopmentPlan: [
       {
-        timeframe: 'Days 1–10',
-        timeline: 'Days 1–10',
+        timeframe: lang === 'hi' ? 'दिन 1–10' : lang === 'kn' ? 'ದಿನ 1–10' : 'Days 1–10',
+        timeline: lang === 'hi' ? 'दिन 1–10' : lang === 'kn' ? 'ದಿನ 1–10' : 'Days 1–10',
         priorityTitle: lang === 'hi' ? 'त्वरित निर्णय अभ्यास' : lang === 'kn' ? 'ತ್ವರಿತ ನಿರ್ಧಾರ ಅಭ್ಯಾಸ' : 'Reversible Decision Velocity',
         simplifiedTitle: lang === 'hi' ? 'जल्दी निर्णय लेने का अभ्यास' : lang === 'kn' ? 'ಬೇಗನೆ ತೀರ್ಮಾನಿಸುವುದು' : 'Faster Decision-Making',
         practicalAction:
@@ -456,11 +466,16 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
             ? 'ಸುಲಭ ನಿರ್ಧಾರಗಳನ್ನು ಬೇಗನೆ ಕೈಗೊಳ್ಳಿ.'
             : 'For small choices that can be adjusted later, decide as soon as you have enough clarity.',
         suggestedHabit: 'Document a 3-bullet decision hypothesis before asking for confirmation.',
-        measureOfProgress: 'Cut average decision latency on reversible micro-tasks by 25%.',
+        measureOfProgress:
+          lang === 'hi'
+            ? 'परिवर्तनीय छोटे निर्णयों में औसत निर्णय समय 25% कम होना।'
+            : lang === 'kn'
+            ? 'ಬದಲಾಯಿಸಬಹುದಾದ ಸಣ್ಣ ನಿರ್ಧಾರಗಳ ಸರಾಸರಿ ಸಮಯ 25% ಕಡಿಮೆಯಾಗುವುದು.'
+            : 'Cut average decision latency on reversible micro-tasks by 25%.',
       },
       {
-        timeframe: 'Days 11–20',
-        timeline: 'Days 11–20',
+        timeframe: lang === 'hi' ? 'दिन 11–20' : lang === 'kn' ? 'ದಿನ 11–20' : 'Days 11–20',
+        timeline: lang === 'hi' ? 'दिन 11–20' : lang === 'kn' ? 'ದಿನ 11–20' : 'Days 11–20',
         priorityTitle: lang === 'hi' ? 'पूर्व-जोखिम विश्लेषण' : lang === 'kn' ? 'ಅಪಾಯ ವಿಶ್ಲೇಷಣೆ' : 'Collaborative Pre-Mortem Check-ins',
         simplifiedTitle: lang === 'hi' ? 'जोखिमों की पहले से पहचान' : lang === 'kn' ? 'ಮುಂಚಿತ ಅಪಾಯ ಪರಿಶೀಲನೆ' : 'Spotting Risks Ahead of Time',
         practicalAction:
@@ -476,11 +491,16 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
             ? 'ಕೆಲಸ ಪ್ರಾರಂಭಿಸುವ ಮುನ್ನ ಸಹೋದ್ಯೋಗಿಯೊಂದಿಗೆ ಸಂಭವನೀಯ ಸಮಸ್ಯೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.'
             : 'Spend 10 minutes with a teammate before starting a task to identify what might go wrong.',
         suggestedHabit: 'Weekly risk assessment check-in at the beginning of each sprint.',
-        measureOfProgress: 'Zero unexpected blockers emerging in late-stage implementation.',
+        measureOfProgress:
+          lang === 'hi'
+            ? 'काम के अंतिम चरण में कोई अप्रत्याशित रुकावट न आना।'
+            : lang === 'kn'
+            ? 'ಕೆಲಸದ ಕೊನೆಯ ಹಂತದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳಿಲ್ಲದಿರುವುದು.'
+            : 'Zero unexpected blockers emerging in late-stage implementation.',
       },
       {
-        timeframe: 'Days 21–30',
-        timeline: 'Days 21–30',
+        timeframe: lang === 'hi' ? 'दिन 21–30' : lang === 'kn' ? 'ದಿನ 21–30' : 'Days 21–30',
+        timeline: lang === 'hi' ? 'दिन 21–30' : lang === 'kn' ? 'ದಿನ 21–30' : 'Days 21–30',
         priorityTitle: lang === 'hi' ? 'मापने योग्य परिणाम लॉग' : lang === 'kn' ? 'ಫಲಿತಾಂಶ ದಾಖಲಾತಿ' : 'Quantifiable Outcome Documentation',
         simplifiedTitle: lang === 'hi' ? 'अपनी उपलब्धियों को आँकड़ों में दर्ज करें' : lang === 'kn' ? 'ಸಾಧನೆಗಳನ್ನು ದಾಖಲಿಸಿ' : 'Tracking Your Concrete Achievements',
         practicalAction:
@@ -496,7 +516,12 @@ export function getGroundedMockEvaluation(input: EvaluationInput): {
             ? 'ಪ್ರತಿ ಶುಕ್ರವಾರ ನಿಮ್ಮ ವಾರದ ಮುಖ್ಯ ಕೆಲಸ ಮತ್ತು ಅದರ ಫಲಿತಾಂಶವನ್ನು ಬರೆದಿಡಿ.'
             : 'Every Friday, write down 2 lines highlighting what you achieved and its measurable impact.',
         suggestedHabit: 'Friday 10-minute reflection log (Challenge, Action Taken, Measurable Result).',
-        measureOfProgress: 'A personal repository of 4 well-documented impact case studies.',
+        measureOfProgress:
+          lang === 'hi'
+            ? '4 अच्छी तरह दर्ज प्रभाव अध्ययनों का व्यक्तिगत संग्रह।'
+            : lang === 'kn'
+            ? '4 ಸ್ಪಷ್ಟವಾಗಿ ದಾಖಲಾದ ಪ್ರಭಾವದ ಅಧ್ಯಯನಗಳ ವೈಯಕ್ತಿಕ ಸಂಗ್ರಹ.'
+            : 'A personal repository of 4 well-documented impact case studies.',
       },
     ],
   };

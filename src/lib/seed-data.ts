@@ -1022,15 +1022,15 @@ export async function seedInitialDatabase() {
   await connectToDatabase();
 
   // 1. Seed Users (Admin, Recruiter, Rahul Verma, Nandini)
-  const existingAdmin = await User.findOne({ email: 'admin@ulipsu.talent' });
+  const existingAdmin = await User.findOne({ email: 'admin@discoveru.talent' });
   if (!existingAdmin) {
     await User.create([
       {
         name: 'Super Admin',
-        email: 'admin@ulipsu.talent',
+        email: 'admin@discoveru.talent',
         role: 'admin',
         preferredLanguage: 'en',
-        organization: 'Ulipsu Talent Matrix',
+        organization: 'DiscoverU Talent Matrix',
       },
       {
         name: 'Priya Sharma (Hiring Manager)',

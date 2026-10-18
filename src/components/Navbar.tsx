@@ -90,8 +90,9 @@ export function Navbar({ currentLanguage = 'en', onLanguageChange, theme = 'ligh
           </div>
           <div>
             <div className="flex items-center gap-2 leading-none">
-              <span className="text-xl font-bold tracking-tight text-[var(--ulipsu-indigo)]">
-                DiscoverU
+              <span className="text-xl font-bold tracking-tight">
+                <span className="text-[var(--ulipsu-amber)]">Discover</span>
+                <span className="text-[var(--ulipsu-indigo)]">U</span>
               </span>
             </div>
             <p className="text-[11px] font-semibold text-gray-500 tracking-wide mt-1 leading-none">

@@ -6,11 +6,6 @@ import {
   Printer,
   Sparkles,
   CheckCircle2,
-  Building,
-  Target,
-  FileText,
-  Search,
-  Zap,
 } from 'lucide-react';
 
 interface CandidateGrowthViewProps {
@@ -18,6 +13,7 @@ interface CandidateGrowthViewProps {
   candidateName?: string;
   targetRole?: string;
   candidateId?: string;
+  language?: 'en' | 'hi' | 'kn';
   onLanguageChange?: (lang: 'en' | 'hi' | 'kn') => void;
 }
 
@@ -26,10 +22,11 @@ export function CandidateGrowthView({
   candidateName = 'Nandini Perumal',
   targetRole = 'Product Management',
   candidateId = 'cand_1792308629917',
+  language: languageOverride,
   onLanguageChange,
 }: CandidateGrowthViewProps) {
   const [isSimplified, setIsSimplified] = useState(false);
-  const language = growthReport?.language || 'en';
+  const language = languageOverride || growthReport?.language || 'en';
 
   const isHindi = language === 'hi';
   const isKannada = language === 'kn';
@@ -313,32 +310,37 @@ export function CandidateGrowthView({
   ];
 
   return (
-    <div className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6 text-slate-100 ${fontClass}`}>
+    <div className={`w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6 text-gray-800 ${fontClass}`}>
       {/* ================= HEADER CARD ================= */}
-      <div className="bg-[#131C31] border border-slate-800 rounded-xl p-6 sm:p-7 shadow-sm">
+      <div className="bg-white border border-[var(--ulipsu-border)] rounded-2xl p-6 sm:p-7 shadow-xs">
         <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-xs uppercase font-bold tracking-wider px-2.5 py-1 rounded-md bg-[var(--ulipsu-indigo-light)] text-[var(--ulipsu-indigo)]">
+                Candidate Growth Report
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
               <span role="img" aria-label="report">📋</span> {labels.reportTitle}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 font-mono">
-              ID: {candidateId} | {labels.targetRoleLabel}: <span className="text-slate-300 font-semibold">{targetRole}</span>
+            <p className="text-xs sm:text-sm text-[var(--ulipsu-muted)] mt-1">
+              ID: {candidateId} | {labels.targetRoleLabel}: <span className="text-gray-900 font-semibold">{targetRole}</span>
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 pt-2 print:hidden">
             {/* Language Selector Dropdown */}
-            <div className="flex items-center gap-1.5 bg-[#0B1120] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
-              <span className="text-slate-400 text-xs">{labels.langLabel}</span>
+            <div className="flex items-center gap-1.5 bg-gray-50 border border-[var(--ulipsu-border)] rounded-lg px-3 py-1.5 text-xs text-gray-800">
+              <span className="text-gray-500 text-xs">{labels.langLabel}</span>
               <select
                 value={language}
                 onChange={handleLanguageSelect}
                 aria-label={labels.langLabel}
-                className="bg-transparent font-medium text-white focus:outline-none cursor-pointer"
+                className="bg-transparent font-medium text-gray-900 focus:outline-none cursor-pointer"
               >
-                <option value="en" className="bg-[#1E293B] text-white">🇬🇧 English</option>
-                <option value="hi" className="bg-[#1E293B] text-white">🇮🇳 हिन्दी</option>
-                <option value="kn" className="bg-[#1E293B] text-white">🇮🇳 ಕನ್ನಡ</option>
+                <option value="en" className="bg-white text-gray-900">🇬🇧 English</option>
+                <option value="hi" className="bg-white text-gray-900">🇮🇳 हिन्दी</option>
+                <option value="kn" className="bg-white text-gray-900">🇮🇳 ಕನ್ನಡ</option>
               </select>
             </div>
 
@@ -346,13 +348,13 @@ export function CandidateGrowthView({
             <button
               type="button"
               onClick={() => setIsSimplified(!isSimplified)}
-              className={`px-3.5 py-1.5 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
                 isSimplified
-                  ? 'bg-purple-900/60 border-purple-500 text-purple-200'
-                  : 'bg-[#1E293B] hover:bg-[#334155] border-slate-700 text-slate-200'
+                  ? 'bg-[var(--ulipsu-amber-light)] border-[var(--ulipsu-amber)] text-[var(--ulipsu-amber-hover)]'
+                  : 'bg-white hover:bg-[var(--ulipsu-amber-light)] border-[var(--ulipsu-border)] text-gray-700'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <Sparkles className="w-3.5 h-3.5 text-[var(--ulipsu-amber)]" />
               <span>{labels.simplifyBtn}</span>
             </button>
 
@@ -360,9 +362,9 @@ export function CandidateGrowthView({
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 py-1.5 rounded-lg bg-[#1E293B] hover:bg-[#334155] border border-slate-700 text-slate-200 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg bg-[var(--ulipsu-indigo)] hover:bg-[var(--ulipsu-indigo-hover)] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
-              <Printer className="w-3.5 h-3.5 text-slate-300" />
+              <Printer className="w-3.5 h-3.5" />
               <span>{labels.printBtn}</span>
             </button>
           </div>
@@ -370,49 +372,49 @@ export function CandidateGrowthView({
       </div>
 
       {/* ================= SCORING INTEGRITY VERIFIED CALLOUT ================= */}
-      <div className="bg-[#064E3B]/25 border border-[#059669]/40 rounded-xl px-4 py-3 flex items-center gap-2.5 text-xs sm:text-sm text-emerald-300">
-        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+      {/* <div className="bg-[var(--ulipsu-emerald-light)] border border-[var(--ulipsu-emerald)]/30 rounded-2xl px-4 py-3 flex items-center gap-2.5 text-xs sm:text-sm text-emerald-800">
+        <CheckCircle2 className="w-4 h-4 text-[var(--ulipsu-emerald)] shrink-0" />
         <p className="font-medium">
           {growthReport?.scoringIntegrity?.verificationStatus || labels.scoringVerified}
         </p>
-      </div>
+      </div> */}
 
       {/* ================= # 1. MY PERSONALITY PROFILE ================= */}
-      <div className="bg-[#131C31] border border-slate-800 rounded-xl p-6 sm:p-7 space-y-5">
-        <div className="border-b border-slate-800/80 pb-4">
-          <h2 className="text-lg sm:text-xl font-bold text-sky-400">
+      <div className="bg-white border border-[var(--ulipsu-border)] rounded-2xl p-6 sm:p-7 space-y-5 shadow-xs">
+        <div className="border-b border-gray-100 pb-4">
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--ulipsu-indigo)]">
             {labels.section1}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1.5">
+          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mt-1.5">
             {labels.section1Desc}
           </p>
         </div>
 
         {/* Psychometric Table (3 Columns) */}
-        <div className="overflow-x-auto rounded-lg border border-slate-800 bg-[#0B1120]">
+        <div className="overflow-x-auto rounded-xl border border-[var(--ulipsu-border)] bg-white">
           <table className="w-full text-left text-xs sm:text-sm border-collapse">
             <thead>
-              <tr className="bg-[#0F172A] border-b border-slate-800 text-slate-400 font-semibold text-xs">
+              <tr className="bg-[var(--ulipsu-indigo-light)] border-b border-[var(--ulipsu-border)] text-[var(--ulipsu-indigo)] font-semibold text-xs">
                 <th className="py-3 px-4 sm:px-6 w-1/4">{labels.thTrait}</th>
                 <th className="py-3 px-3 sm:px-4 w-32 text-center">{labels.thScore}</th>
                 <th className="py-3 px-4 sm:px-6">{labels.thInterp}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/70">
+            <tbody className="divide-y divide-gray-100">
               {personalityTraits.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="py-3.5 px-4 sm:px-6 font-bold text-white align-top">
+                <tr key={idx} className="hover:bg-indigo-50/40 transition-colors">
+                  <td className="py-3.5 px-4 sm:px-6 font-bold text-gray-900 align-top">
                     <div>{item.trait}</div>
                     {isSimplified && (
-                      <div className="text-[11px] font-normal text-amber-300 mt-0.5">
+                      <div className="text-[11px] font-normal text-[var(--ulipsu-amber-hover)] mt-0.5">
                         ({item.simplifiedName})
                       </div>
                     )}
                   </td>
-                  <td className="py-3.5 px-3 sm:px-4 text-center font-bold text-white align-top whitespace-nowrap">
+                  <td className="py-3.5 px-3 sm:px-4 text-center font-bold text-gray-900 align-top whitespace-nowrap">
                     {item.score} / {item.range}
                   </td>
-                  <td className="py-3.5 px-4 sm:px-6 text-slate-300 leading-relaxed align-top">
+                  <td className="py-3.5 px-4 sm:px-6 text-gray-600 leading-relaxed align-top">
                     {item.interpretation}
                   </td>
                 </tr>
@@ -426,19 +428,19 @@ export function CandidateGrowthView({
           {personalityTraits.map((item, idx) => (
             <div
               key={idx}
-              className="bg-[#131C31] border border-slate-800 rounded-xl p-4 sm:p-5 space-y-2.5"
+              className="bg-[#F8F9FD] border border-gray-100 rounded-xl p-4 sm:p-5 space-y-2.5"
             >
-              <h3 className="font-bold text-sm sm:text-base text-white">
+              <h3 className="font-bold text-sm sm:text-base text-gray-900">
                 {item.trait} ({labels.thScore}: {item.score} / {item.range})
               </h3>
               <div className="space-y-2 text-xs sm:text-sm leading-relaxed">
                 <div>
-                  <span className="font-bold text-sky-400">{labels.everydayContext}</span>
-                  <span className="text-slate-300">{item.everydayContext}</span>
+                  <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.everydayContext}</span>
+                  <span className="text-gray-600">{item.everydayContext}</span>
                 </div>
                 <div>
-                  <span className="font-bold text-sky-400">{labels.tradeOffs}</span>
-                  <span className="text-slate-300">{item.tradeOffs}</span>
+                  <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.tradeOffs}</span>
+                  <span className="text-gray-600">{item.tradeOffs}</span>
                 </div>
               </div>
             </div>
@@ -447,8 +449,8 @@ export function CandidateGrowthView({
       </div>
 
       {/* ================= # 2. MY POTENTIAL STRENGTHS ================= */}
-      <div className="bg-[#131C31] border border-slate-800 rounded-xl p-6 sm:p-7 space-y-5">
-        <h2 className="text-lg sm:text-xl font-bold text-sky-400">
+      <div className="bg-white border border-[var(--ulipsu-border)] rounded-2xl p-6 sm:p-7 space-y-5 shadow-xs">
+        <h2 className="text-lg sm:text-xl font-bold text-[var(--ulipsu-indigo)]">
           {labels.section2}
         </h2>
 
@@ -462,28 +464,28 @@ export function CandidateGrowthView({
             return (
               <div
                 key={idx}
-                className="bg-[#131C31] border border-slate-800 rounded-xl p-4 sm:p-5 space-y-3"
+                className="bg-[#F8F9FD] border border-gray-100 rounded-xl p-4 sm:p-5 space-y-3"
               >
-                <h3 className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-gray-900 flex items-center gap-2">
                   <span>💪</span>
                   <span>{displayTitle}</span>
                 </h3>
 
                 <div className="text-xs sm:text-sm leading-relaxed">
-                  <span className="font-bold text-sky-400">{labels.whatSuggests}</span>
-                  <span className="text-slate-300">
+                  <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.whatSuggests}</span>
+                  <span className="text-gray-600">
                     {displaySuggests || labels.insufficientEvidence}
                   </span>
                 </div>
 
                 {/* Supporting Behavioural Evidence Callout Box (No STAR labels) */}
                 {evidence && (
-                  <div className="bg-[#0F172A] border-l-2 border-purple-500 rounded-r-lg p-3 text-xs sm:text-sm space-y-1">
-                    <div className="text-purple-300 font-semibold flex items-center gap-1.5">
+                  <div className="bg-[var(--ulipsu-indigo-light)] border-l-2 border-[var(--ulipsu-indigo)] rounded-r-lg p-3 text-xs sm:text-sm space-y-1">
+                    <div className="text-[var(--ulipsu-indigo)] font-semibold flex items-center gap-1.5">
                       <span>📌</span>
                       <span>{labels.supportingEvidence}</span>
                     </div>
-                    <p className="italic text-slate-300 leading-relaxed pl-5">
+                    <p className="italic text-gray-600 leading-relaxed pl-5">
                       &ldquo;{evidence}&rdquo;
                     </p>
                   </div>
@@ -491,8 +493,8 @@ export function CandidateGrowthView({
 
                 {displayWhere && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.whereHelps}</span>
-                    <span className="text-slate-300">{displayWhere}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.whereHelps}</span>
+                    <span className="text-gray-600">{displayWhere}</span>
                   </div>
                 )}
               </div>
@@ -502,8 +504,8 @@ export function CandidateGrowthView({
       </div>
 
       {/* ================= # 3. MY CHALLENGES ================= */}
-      <div className="bg-[#131C31] border border-slate-800 rounded-xl p-6 sm:p-7 space-y-5">
-        <h2 className="text-lg sm:text-xl font-bold text-sky-400">
+      <div className="bg-white border border-[var(--ulipsu-border)] rounded-2xl p-6 sm:p-7 space-y-5 shadow-xs">
+        <h2 className="text-lg sm:text-xl font-bold text-[var(--ulipsu-indigo)]">
           {labels.section3}
         </h2>
 
@@ -517,39 +519,39 @@ export function CandidateGrowthView({
             return (
               <div
                 key={idx}
-                className="bg-[#131C31] border border-slate-800 rounded-xl p-4 sm:p-5 space-y-2.5"
+                className="bg-[#F8F9FD] border border-gray-100 rounded-xl p-4 sm:p-5 space-y-2.5"
               >
-                <h3 className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-gray-900 flex items-center gap-2">
                   <span>🔍</span>
                   <span>{displayTitle}</span>
                 </h3>
 
                 {blind.whyItMayOccur && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.whyOccurs}</span>
-                    <span className="text-slate-300">{blind.whyItMayOccur}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.whyOccurs}</span>
+                    <span className="text-gray-600">{blind.whyItMayOccur}</span>
                   </div>
                 )}
 
                 {blind.howItMightAppear && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.howAppears}</span>
-                    <span className="text-slate-300">{blind.howItMightAppear}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.howAppears}</span>
+                    <span className="text-gray-600">{blind.howItMightAppear}</span>
                   </div>
                 )}
 
                 {blind.whatToWatchFor && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.whatToWatch}</span>
-                    <span className="text-slate-300">{blind.whatToWatchFor}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.whatToWatch}</span>
+                    <span className="text-gray-600">{blind.whatToWatchFor}</span>
                   </div>
                 )}
 
                 {/* Constructive Adjustment Box */}
                 {displayAdjustment && (
-                  <div className="bg-[#064E3B]/20 border border-[#059669]/40 rounded-lg p-3 text-xs sm:text-sm mt-1">
-                    <span className="font-bold text-emerald-400">{labels.constructiveAdjustment}</span>
-                    <span className="text-slate-200">{displayAdjustment}</span>
+                  <div className="bg-[var(--ulipsu-emerald-light)] border border-[var(--ulipsu-emerald)]/30 rounded-lg p-3 text-xs sm:text-sm mt-1">
+                    <span className="font-bold text-emerald-700">{labels.constructiveAdjustment}</span>
+                    <span className="text-gray-800">{displayAdjustment}</span>
                   </div>
                 )}
               </div>
@@ -559,8 +561,8 @@ export function CandidateGrowthView({
       </div>
 
       {/* ================= # 4. MY WORK PREFERENCES ================= */}
-      <div className="bg-[#131C31] border border-slate-800 rounded-xl p-6 sm:p-7 space-y-5">
-        <h2 className="text-lg sm:text-xl font-bold text-sky-400">
+      <div className="bg-white border border-[var(--ulipsu-border)] rounded-2xl p-6 sm:p-7 space-y-5 shadow-xs">
+        <h2 className="text-lg sm:text-xl font-bold text-[var(--ulipsu-indigo)]">
           {labels.section4}
         </h2>
 
@@ -577,38 +579,38 @@ export function CandidateGrowthView({
             return (
               <div
                 key={idx}
-                className="bg-[#131C31] border border-slate-800 rounded-xl p-4 sm:p-5 space-y-2.5"
+                className="bg-[#F8F9FD] border border-gray-100 rounded-xl p-4 sm:p-5 space-y-2.5"
               >
-                <h3 className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-gray-900 flex items-center gap-2">
                   <span>🏢</span>
                   <span>{displayTitle}</span>
                 </h3>
 
                 <div className="text-xs sm:text-sm leading-relaxed">
-                  <span className="font-bold text-sky-400">{labels.findings}</span>
-                  <span className="text-slate-300">
+                  <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.findings}</span>
+                  <span className="text-gray-600">
                     {displayFindings || labels.insufficientEvidence}
                   </span>
                 </div>
 
                 {pref.supportingEvidence && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.supportingEvidence} </span>
-                    <span className="text-slate-300">{pref.supportingEvidence}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.supportingEvidence} </span>
+                    <span className="text-gray-600">{pref.supportingEvidence}</span>
                   </div>
                 )}
 
                 {pref.realWorldApplication && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{isHindi ? 'व्यावहारिक अनुप्रयोग: ' : isKannada ? 'ಪ್ರಾಯೋಗಿಕ ಅನ್ವಯ: ' : 'Real-world application: '}</span>
-                    <span className="text-slate-300">{pref.realWorldApplication}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{isHindi ? 'व्यावहारिक अनुप्रयोग: ' : isKannada ? 'ಪ್ರಾಯೋಗಿಕ ಅನ್ವಯ: ' : 'Real-world application: '}</span>
+                    <span className="text-gray-600">{pref.realWorldApplication}</span>
                   </div>
                 )}
 
                 {displayStrategy && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.adaptationStrategy}</span>
-                    <span className="text-slate-300">{displayStrategy}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.adaptationStrategy}</span>
+                    <span className="text-gray-600">{displayStrategy}</span>
                   </div>
                 )}
               </div>
@@ -618,12 +620,12 @@ export function CandidateGrowthView({
       </div>
 
       {/* ================= # 5. MY PERSONAL DEVELOPMENT PLAN ================= */}
-      <div className="bg-[#131C31] border border-slate-800 rounded-xl p-6 sm:p-7 space-y-5">
+      <div className="bg-white border border-[var(--ulipsu-border)] rounded-2xl p-6 sm:p-7 space-y-5 shadow-xs">
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-sky-400">
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--ulipsu-indigo)]">
             {labels.section5}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 italic mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 italic mt-1">
             {labels.section5Sub}
           </p>
         </div>
@@ -636,38 +638,38 @@ export function CandidateGrowthView({
             return (
               <div
                 key={idx}
-                className="bg-[#131C31] border border-slate-800 rounded-xl p-4 sm:p-5 space-y-2.5"
+                className="bg-[#F8F9FD] border border-gray-100 rounded-xl p-4 sm:p-5 space-y-2.5"
               >
-                <h3 className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-gray-900 flex items-center gap-2">
                   <span>🎯</span>
                   <span>{displayTitle}</span>
                 </h3>
 
                 {pdp.whyItMatters && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.whyMatters}</span>
-                    <span className="text-slate-300">{pdp.whyItMatters}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.whyMatters}</span>
+                    <span className="text-gray-600">{pdp.whyItMatters}</span>
                   </div>
                 )}
 
                 {displayAction && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.practicalAction}</span>
-                    <span className="text-slate-300">{displayAction}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.practicalAction}</span>
+                    <span className="text-gray-600">{displayAction}</span>
                   </div>
                 )}
 
                 {(pdp.timeline || pdp.timeframe) && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.timeline}</span>
-                    <span className="text-slate-300">{pdp.timeline || pdp.timeframe}</span>
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.timeline}</span>
+                    <span className="text-gray-600">{pdp.timeline || pdp.timeframe}</span>
                   </div>
                 )}
 
                 {(pdp.progressIndicator || pdp.measureOfProgress) && (
                   <div className="text-xs sm:text-sm leading-relaxed">
-                    <span className="font-bold text-sky-400">{labels.progressIndicator}</span>
-                    <span className="text-slate-300">
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.progressIndicator}</span>
+                    <span className="text-gray-600">
                       {pdp.progressIndicator || pdp.measureOfProgress}
                     </span>
                   </div>
@@ -675,9 +677,9 @@ export function CandidateGrowthView({
 
                 {/* Reflection Prompt Box */}
                 {pdp.reflectionPrompt && (
-                  <div className="bg-[#2E1065]/30 border border-purple-500/40 rounded-lg p-3 text-xs sm:text-sm mt-1">
-                    <span className="font-bold text-purple-300">{labels.reflectionPrompt}</span>
-                    <span className="italic text-purple-200">
+                  <div className="bg-[var(--ulipsu-indigo-light)] border border-[var(--ulipsu-indigo)]/20 rounded-lg p-3 text-xs sm:text-sm mt-1">
+                    <span className="font-bold text-[var(--ulipsu-indigo)]">{labels.reflectionPrompt}</span>
+                    <span className="italic text-gray-800">
                       &ldquo;{pdp.reflectionPrompt}&rdquo;
                     </span>
                   </div>
@@ -689,9 +691,7 @@ export function CandidateGrowthView({
       </div>
 
       {/* ================= FOOTER COMPLIANCE ================= */}
-      <div className="text-center py-6 text-xs text-slate-500">
-        DiscoverU • Make Your Next Move Count • Multilingual Assessment Engine
-      </div>
+    
     </div>
   );
 }

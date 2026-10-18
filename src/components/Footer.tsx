@@ -71,13 +71,10 @@ export function Footer() {
               Design & Ethics
             </h4>
             <p className="text-xs text-gray-600 leading-relaxed mb-2">
-              Built with the vivid, playful color theme of <strong>Ulipsu</strong> with ethical AI guardrails: separating raw candidate facts from AI interpretations.
+              Built with the vivid, playful color theme of <strong>DiscoverU</strong> with ethical AI guardrails: separating raw candidate facts from AI interpretations.
             </p>
             <div className="flex items-center gap-2 pt-1 text-[11px] text-gray-500">
-              <span>Next.js 16</span>
-              <span>•</span>
-              <span>MongoDB</span>
-              <span>•</span>
+              
               <span>AI Powered</span>
             </div>
           </div>
@@ -86,25 +83,9 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>
-            © {new Date().getFullYear()} DiscoverU - Make Your Next Move Count. Built with Ulipsu aesthetic.
+            © {new Date().getFullYear()} DiscoverU - Make Your Next Move Count. Built with DiscoverU.
           </p>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-[var(--ulipsu-indigo)] transition">
-              Home
-            </Link>
-            <Link href="/assessment" className="hover:text-[var(--ulipsu-indigo)] transition">
-              Assessment
-            </Link>
-            <Link href="/recruiter" className="hover:text-[var(--ulipsu-indigo)] transition">
-              Recruiter
-            </Link>
-            <Link href="/candidate" className="hover:text-[var(--ulipsu-indigo)] transition">
-              Growth Report
-            </Link>
-            <Link href="/admin" className="hover:text-[var(--ulipsu-indigo)] transition">
-              Admin
-            </Link>
-          </div>
+          
         </div>
       </div>
     </footer>

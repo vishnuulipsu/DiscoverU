@@ -2013,7 +2013,7 @@ export function AssessmentRoom({
       <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200/80 shadow-xs mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
           <div>
-            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            {/* <div className="flex flex-wrap items-center gap-2 mb-1.5">
               <span className="text-[11px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-[var(--ulipsu-indigo-light)] text-[var(--ulipsu-indigo)]">
                 {t.dualPaneBadge}
               </span>
@@ -2024,7 +2024,7 @@ export function AssessmentRoom({
               <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-[var(--ulipsu-indigo)] border border-indigo-200">
                 Industry: {currentIndustryObj.name}
               </span>
-            </div>
+            </div> */}
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--ulipsu-charcoal)]">
               {activeRoleTarget}
             </h1>
@@ -2036,26 +2036,10 @@ export function AssessmentRoom({
           {/* Right controls: Return to Setup + Customize Test Button + Candidate Badge + Language Switcher */}
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Return to Setup Form Button */}
-            <button
-              type="button"
-              onClick={() => setHasStarted(false)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold shadow-xs transition cursor-pointer"
-              title="Return to Assessment Onboarding Setup Form"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 text-gray-500" />
-              <span>{t.setupFormBtn}</span>
-            </button>
+            
 
             {/* Customizer Launcher Button */}
-            <button
-              type="button"
-              onClick={() => setIsConfigModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--ulipsu-indigo)] text-white hover:bg-[var(--ulipsu-indigo-hover)] text-xs font-semibold shadow-xs transition cursor-pointer"
-              title="Change your background, target industry, or choose test track"
-            >
-              <Sliders className="w-3.5 h-3.5 text-[var(--ulipsu-amber)]" />
-              <span>{t.customizeBtn}</span>
-            </button>
+            
 
             {/* Candidate Info Pill */}
             <div className="relative">
@@ -2404,14 +2388,14 @@ export function AssessmentRoom({
                 <Lightbulb className={`w-3.5 h-3.5 ${isSimplified ? 'text-amber-600 fill-amber-500' : 'text-amber-500'}`} />
                 <span>{isSimplified ? (language === 'hi' ? 'मानक दृश्य' : language === 'kn' ? 'ಸಾಮಾನ್ಯ ನೋಟ' : 'Standard View') : (language === 'hi' ? 'सरल भाषा' : language === 'kn' ? 'ಸರಳ ಭಾಷೆ' : 'Simplify Question')}</span>
               </button>
-              <span className="text-xs font-medium text-gray-500 hidden sm:inline">
+              {/* <span className="text-xs font-medium text-gray-500 hidden sm:inline">
                 {language === 'hi' ? 'सिंगल-टैप रेटिंग' : language === 'kn' ? 'ಸಿಂಗಲ್-ಟ್ಯಾಪ್ ರೇಟಿಂಗ್' : 'Single-tap rating'}
-              </span>
+              </span> */}
             </div>
           </div>
 
           {/* Simplified Question Helper Banner */}
-          {isSimplified && (
+          {/* {isSimplified && (
             <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 flex items-start gap-2.5 leading-relaxed">
               <Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 fill-amber-500" />
               <div>
@@ -2423,7 +2407,7 @@ export function AssessmentRoom({
                 </p>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Statement Box */}
           <div className="my-6 p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-slate-50 via-white to-indigo-50/20 border border-slate-200/90 shadow-xs text-center relative">

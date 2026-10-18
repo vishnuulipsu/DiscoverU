@@ -1216,86 +1216,106 @@ export function AssessmentRoom({
                   {/* Option 1: Working Professional */}
                   <div
                     onClick={() => setAssessmentTrack('professional')}
-                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                    className={`p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${
                       assessmentTrack === 'professional'
-                        ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/50 shadow-sm'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50'
+                        ? 'border-[var(--ulipsu-indigo)] bg-gradient-to-b from-indigo-50/70 to-white shadow-sm ring-1 ring-[var(--ulipsu-indigo)]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-xs'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">💼</span>
-                        <h3 className="text-sm font-bold text-gray-900">
-                          Working Professional Track
-                        </h3>
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-9 h-9 rounded-xl bg-indigo-100/80 flex items-center justify-center text-lg shadow-2xs">
+                            💼
+                          </span>
+                          <h3 className="text-sm font-bold text-gray-900">
+                            Working Professional Track
+                          </h3>
+                        </div>
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 transition-colors ${
+                            assessmentTrack === 'professional'
+                              ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
+                              : 'border-2 border-gray-300 bg-white'
+                          }`}
+                        >
+                          {assessmentTrack === 'professional' && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                        </div>
                       </div>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${
-                        assessmentTrack === 'professional' ? 'bg-[var(--ulipsu-indigo)] text-white font-bold' : 'border border-gray-300'
-                      }`}>
-                        {assessmentTrack === 'professional' && '✓'}
+
+                      {/* Clean structured items without verbose detailing */}
+                      <div className="space-y-2 mt-3.5">
+                        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/60 text-xs text-gray-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0"></span>
+                          <span className="leading-snug">
+                            <strong className="text-gray-950 font-bold">30 Questions</strong> (6 per dimension, 1–5 Likert scale, single-tap)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/60 text-xs text-gray-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                          <span className="leading-snug">
+                            <strong className="text-gray-950 font-bold">4 Questions</strong> on 1 crisis scenario (Situation, Task, Action, Result)
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                      Tailored for corporate professionals: measures behavioral mindset and leadership execution under pressure.
-                    </p>
-                    <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-700">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0"></span>
-                        <span><strong>OCEAN (Big Five):</strong> 30 Questions (6 per dimension, 1–5 Likert scale, single-tap)</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                        <span><strong>STAR Subjective:</strong> 4 Questions on 1 crisis scenario (Situation, Task, Action, Result)</span>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-[10px] font-semibold text-indigo-900 bg-indigo-100/60 px-2.5 py-1 rounded-lg">
+
+                    <div className="mt-4 flex items-center justify-between text-[11px] font-semibold text-indigo-950 bg-indigo-100/70 px-3 py-1.5 rounded-xl">
                       <span>Total: 34 Questions</span>
-                      <span>Likert + Subjective</span>
+                      <span className="text-indigo-700 font-medium">Likert + Subjective</span>
                     </div>
                   </div>
 
                   {/* Option 2: Student Track */}
                   <div
                     onClick={() => setAssessmentTrack('student')}
-                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                    className={`p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${
                       assessmentTrack === 'student'
-                        ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/50 shadow-sm'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50'
+                        ? 'border-[var(--ulipsu-indigo)] bg-gradient-to-b from-indigo-50/70 to-white shadow-sm ring-1 ring-[var(--ulipsu-indigo)]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-xs'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">🎓</span>
-                        <h3 className="text-sm font-bold text-gray-900">
-                          Student Track
-                        </h3>
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-9 h-9 rounded-xl bg-purple-100/80 flex items-center justify-center text-lg shadow-2xs">
+                            🎓
+                          </span>
+                          <h3 className="text-sm font-bold text-gray-900">
+                            Student Track
+                          </h3>
+                        </div>
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 transition-colors ${
+                            assessmentTrack === 'student'
+                              ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
+                              : 'border-2 border-gray-300 bg-white'
+                          }`}
+                        >
+                          {assessmentTrack === 'student' && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                        </div>
                       </div>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${
-                        assessmentTrack === 'student' ? 'bg-[var(--ulipsu-indigo)] text-white font-bold' : 'border border-gray-300'
-                      }`}>
-                        {assessmentTrack === 'student' && '✓'}
+
+                      {/* Clean structured items without verbose detailing */}
+                      <div className="space-y-2 mt-3.5">
+                        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/60 text-xs text-gray-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0"></span>
+                          <span className="leading-snug">
+                            <strong className="text-gray-950 font-bold">12 Questions</strong> (3 each across E/I, S/N, T/F, J/P)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/60 text-xs text-gray-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
+                          <span className="leading-snug">
+                            <strong className="text-gray-950 font-bold">4 Questions</strong> for vocational interest mapping
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                      Tailored for students: maps personality styles and vocational career inclinations with balanced scenarios.
-                    </p>
-                    <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-700">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
-                        <span><strong>MBTI Dimensions:</strong> 12 Questions (3 each across E/I, S/N, T/F, J/P)</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0"></span>
-                        <span><strong>HOLLAND (RIASEC):</strong> 4 Questions for vocational interest mapping</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-emerald-800 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                        <span>Option-based • Subtle non-obvious choices • Explanation is <strong>Not Mandatory</strong></span>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-[10px] font-semibold text-emerald-900 bg-emerald-100/60 px-2.5 py-1 rounded-lg">
+
+                    <div className="mt-4 flex items-center justify-between text-[11px] font-semibold text-emerald-950 bg-emerald-100/70 px-3 py-1.5 rounded-xl">
                       <span>Total: 16 Questions</span>
-                      <span>Option-Based + Optional Rationale</span>
+                      <span className="text-emerald-700 font-medium">Option-Based Approach</span>
                     </div>
                   </div>
                 </div>

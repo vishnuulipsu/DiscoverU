@@ -1,11 +1,13 @@
 import { IDualPaneQuestion } from '@/models/Assessment';
 import { GoogleGenAI } from '@google/genai';
+import { buildProfessionalQuestions, buildStudentQuestions } from '@/lib/assessment-tracks';
 
 export interface GenerateAssessmentParams {
   candidateName: string;
   currentRole: string; // What candidate is currently doing
   targetIndustry: string; // Industry they want to work in
-  testTrack: 'full' | 'crisis' | 'cross_functional' | 'governance'; // Which test they want to take
+  testTrack?: 'full' | 'crisis' | 'cross_functional' | 'governance'; // Which test they want to take
+  assessmentTrack?: 'professional' | 'student'; // 'professional' = OCEAN (30) + STAR (4); 'student' = MBTI (12) + HOLLAND (4)
   language?: 'en' | 'hi' | 'kn';
 }
 
@@ -80,9 +82,31 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
   description: string;
   questions: IDualPaneQuestion[];
 } {
-  const { currentRole, targetIndustry, testTrack } = params;
+  const { currentRole, targetIndustry, testTrack, assessmentTrack } = params;
   const industryKey = (targetIndustry || 'saas').toLowerCase();
   const ind = INDUSTRY_CONTEXTS[industryKey] || INDUSTRY_CONTEXTS.saas;
+
+  // 1. Student Track: MBTI (12) + Holland RIASEC (4)
+  if (assessmentTrack === 'student') {
+    const studentQuestions = buildStudentQuestions(currentRole, targetIndustry);
+    return {
+      title: `Student Aptitude & Personality Assessment (MBTI + Holland) - ${ind.name}`,
+      roleTarget: `${currentRole || 'Student / Academic'} (${ind.name})`,
+      description: `16 Option-based questions exploring Myers-Briggs Type Indicator (12) and Holland RIASEC Career Code (4) with non-mandatory rationale explanation.`,
+      questions: studentQuestions,
+    };
+  }
+
+  // 2. Working Professional Track: OCEAN Big Five (30) + STAR Subjective (4)
+  if (assessmentTrack === 'professional') {
+    const professionalQuestions = buildProfessionalQuestions(currentRole, targetIndustry);
+    return {
+      title: `Professional Leadership & Behavioral Assessment (OCEAN + STAR) - ${ind.name}`,
+      roleTarget: `${currentRole || 'Software Professional'} (${ind.name})`,
+      description: `30 Likert-scale Big Five (OCEAN) behavioral questions across 5 dimensions and 4 STAR subjective situational responses evaluating real-world leadership.`,
+      questions: professionalQuestions,
+    };
+  }
 
   const roleTitle = `${currentRole || 'Software Professional'} (${ind.name})`;
 
@@ -330,6 +354,15 @@ export async function generateAssessmentWithGemini(params: GenerateAssessmentPar
   questions: IDualPaneQuestion[];
   generatedByAi: boolean;
 }> {
+  // If a track is explicitly specified ('professional' or 'student'), serve the comprehensive psychometric suite
+  if (params.assessmentTrack === 'professional' || params.assessmentTrack === 'student') {
+    const trackAssessment = buildIndustryAssessment(params);
+    return {
+      ...trackAssessment,
+      generatedByAi: true,
+    };
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || '';
   const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-pro';
 

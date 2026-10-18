@@ -19,6 +19,10 @@ export interface IDualPaneQuestion {
   questionId: string;
   competencyKey: string;
   competencyName: string;
+  questionType?: 'likert' | 'subjective_star' | 'option_explain' | 'mcq_dual';
+  category?: 'ocean' | 'star' | 'mbti' | 'holland' | 'situational';
+  subCategory?: string; // e.g. 'Openness', 'Conscientiousness', 'Situation', 'E vs I', 'Realistic'
+  isOptionalExplanation?: boolean;
   en: ILocalizedQuestionContent;
   hi: ILocalizedQuestionContent;
   kn: ILocalizedQuestionContent;
@@ -28,6 +32,7 @@ export interface IDualPaneQuestion {
 export interface IAssessment extends Document {
   title: string;
   roleTarget: string; // e.g. "Senior Software Engineer" or "Product Operations Lead"
+  track?: 'professional' | 'student';
   version: string;
   description: string;
   timeLimitMinutes: number;
@@ -62,6 +67,10 @@ const DualPaneQuestionSchema = new Schema<IDualPaneQuestion>(
     questionId: { type: String, required: true },
     competencyKey: { type: String, required: true },
     competencyName: { type: String, required: true },
+    questionType: { type: String, default: 'mcq_dual' },
+    category: { type: String },
+    subCategory: { type: String },
+    isOptionalExplanation: { type: Boolean, default: false },
     en: { type: LocalizedContentSchema, required: true },
     hi: { type: LocalizedContentSchema, required: true },
     kn: { type: LocalizedContentSchema, required: true },
@@ -74,6 +83,7 @@ const AssessmentSchema = new Schema<IAssessment>(
   {
     title: { type: String, required: true },
     roleTarget: { type: String, required: true },
+    track: { type: String, enum: ['professional', 'student'], default: 'professional' },
     version: { type: String, default: '1.0' },
     description: { type: String, required: true },
     timeLimitMinutes: { type: Number, default: 45 },

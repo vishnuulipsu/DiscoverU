@@ -11,7 +11,27 @@ export interface ICandidateProfile {
   workExperience: string;
   preferredLanguage: 'en' | 'hi' | 'kn';
   targetRoleField: string;
+  assessmentTrack: 'professional' | 'student';
 }
+
+export const ASSESSMENT_TRACK_OPTIONS = [
+  {
+    id: 'professional' as const,
+    name: 'Working Professional Track',
+    framework: 'OCEAN (Big Five) + STAR',
+    questionCount: '34 Questions (30 OCEAN Likert + 4 STAR Subjective)',
+    description: '30 Likert-scale statements across Openness, Conscientiousness, Extraversion, Agreeableness, and Emotional Stability (6 per category) + 4 Subjective STAR prompts on 1 scenario.',
+    badge: '👔 Working Professionals',
+  },
+  {
+    id: 'student' as const,
+    name: 'Student / Fresher Track',
+    framework: 'MBTI + HOLLAND (RIASEC)',
+    questionCount: '16 Questions (12 MBTI + 4 Holland RIASEC)',
+    description: 'Option-based approach with crisp, non-obvious choices evaluating MBTI personality & RIASEC career interests. Includes optional reasoning explanation.',
+    badge: '🎓 Students & Graduates',
+  },
+];
 
 export const GENDER_OPTIONS = [
   { value: 'Prefer not to say', label: 'Prefer not to say' },

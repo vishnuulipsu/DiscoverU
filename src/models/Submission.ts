@@ -2,8 +2,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ICandidateAnswer {
   questionId: string;
-  selectedOptionId: string; // Left Pane MCQ selection
-  writtenRationale: string;  // Right Pane free text response
+  selectedOptionId?: string; // Optional for purely subjective STAR questions
+  writtenRationale?: string;  // Optional for Likert rating items or student optional explanation
   timeSpentSeconds?: number;
 }
 
@@ -17,6 +17,7 @@ export interface ICandidateProfileData {
   careerStage?: string;
   workExperience?: string;
   targetRoleField?: string;
+  assessmentTrack?: 'professional' | 'student';
 }
 
 export interface ISubmission extends Document {
@@ -35,8 +36,8 @@ export interface ISubmission extends Document {
 const CandidateAnswerSchema = new Schema<ICandidateAnswer>(
   {
     questionId: { type: String, required: true },
-    selectedOptionId: { type: String, required: true },
-    writtenRationale: { type: String, required: true },
+    selectedOptionId: { type: String, default: '' },
+    writtenRationale: { type: String, default: '' },
     timeSpentSeconds: { type: Number, default: 0 },
   },
   { _id: false }

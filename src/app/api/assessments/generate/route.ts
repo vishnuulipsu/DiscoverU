@@ -6,7 +6,7 @@ import { generateAssessmentWithGemini, GenerateAssessmentParams } from '@/lib/as
 export async function POST(req: Request) {
   try {
     const body: GenerateAssessmentParams = await req.json();
-    const { candidateName, currentRole, targetIndustry, testTrack, language } = body;
+    const { candidateName, currentRole, targetIndustry, testTrack, assessmentTrack, language } = body;
 
     if (!targetIndustry || !currentRole) {
       return NextResponse.json(
@@ -17,12 +17,20 @@ export async function POST(req: Request) {
 
     await connectToDatabase();
 
-    // Generate bespoke assessment dilemmas using Gemini AI
+    // Determine track: explicit assessmentTrack, or inferred from currentRole
+    const determinedTrack: 'professional' | 'student' =
+      assessmentTrack ||
+      (currentRole?.toLowerCase().includes('student') || currentRole?.toLowerCase().includes('fresher')
+        ? 'student'
+        : 'professional');
+
+    // Generate bespoke assessment dilemmas using AI Engine / Psychometric suites
     const generated = await generateAssessmentWithGemini({
       candidateName: candidateName || 'Candidate',
       currentRole,
       targetIndustry,
       testTrack: testTrack || 'full',
+      assessmentTrack: determinedTrack,
       language: language || 'en',
     });
 
@@ -32,7 +40,8 @@ export async function POST(req: Request) {
       roleTarget: generated.roleTarget,
       version: generated.generatedByAi ? 'v2.0-gemini' : 'v2.0-dynamic',
       description: generated.description,
-      timeLimitMinutes: generated.questions.length * 10,
+      track: determinedTrack,
+      timeLimitMinutes: generated.questions.length * 4,
       questions: generated.questions,
     });
 
@@ -41,6 +50,7 @@ export async function POST(req: Request) {
       assessmentId: assessmentDoc._id.toString(),
       roleTarget: generated.roleTarget,
       title: generated.title,
+      track: determinedTrack,
       questions: generated.questions,
       version: generated.generatedByAi ? 'v2.0-gemini' : 'v2.0-dynamic',
       generatedByAi: generated.generatedByAi,

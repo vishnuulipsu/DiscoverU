@@ -52,6 +52,7 @@ import {
   GENDER_OPTIONS,
   ASSESSMENT_LANGUAGES,
   TARGET_ROLE_FIELDS,
+  ASSESSMENT_TRACK_OPTIONS,
 } from './CandidateProfileData';
 
 interface AssessmentRoomProps {
@@ -245,6 +246,7 @@ export function AssessmentRoom({
   const [degreeQualification, setDegreeQualification] = useState('B.Tech / B.E.');
   const [careerStage, setCareerStage] = useState('Recent Graduate / Fresher');
   const [workExperience, setWorkExperience] = useState('0-1 years');
+  const [assessmentTrack, setAssessmentTrack] = useState<'professional' | 'student'>('professional');
   const [targetRoleField, setTargetRoleField] = useState('Tech/Software');
   const [currentRole, setCurrentRole] = useState('Software Engineer');
   const [targetIndustry, setTargetIndustry] = useState('saas');
@@ -268,6 +270,15 @@ export function AssessmentRoom({
     if (fieldObj) {
       setTargetIndustry(fieldObj.industryId);
       setCurrentRole(fieldObj.label);
+    }
+  };
+
+  const handleCareerStageChange = (newStage: string) => {
+    setCareerStage(newStage);
+    if (newStage === 'Student') {
+      setAssessmentTrack('student');
+    } else if (newStage === 'Experienced Professional' || newStage === 'Recent Graduate / Fresher') {
+      setAssessmentTrack('professional');
     }
   };
 
@@ -328,12 +339,13 @@ export function AssessmentRoom({
     writtenRationale: '',
   };
 
-  const selectedOptionObj = localizedContent.mcqOptions.find(
+  const selectedOptionObj = (localizedContent?.mcqOptions || []).find(
     (opt) => opt.id === currentAnswer.selectedOptionId
   );
 
   const handleSelectOption = (optionId: string) => {
     setValidationError(null);
+    const selectedOpt = (localizedContent?.mcqOptions || []).find((o) => o.id === optionId);
     setAnswers((prev) => ({
       ...prev,
       [currentQ.questionId]: {
@@ -345,6 +357,10 @@ export function AssessmentRoom({
           writtenRationale: '',
         }),
         selectedOptionId: optionId,
+        writtenRationale:
+          currentQ.questionType === 'likert'
+            ? selectedOpt?.text || `Likert Rating ${optionId}`
+            : prev[currentQ.questionId]?.writtenRationale || '',
       },
     }));
   };
@@ -429,6 +445,7 @@ export function AssessmentRoom({
           targetIndustry: industryToSend,
           testTrack,
           language,
+          assessmentTrack,
         }),
       });
 
@@ -506,6 +523,43 @@ export function AssessmentRoom({
 
   const validateCurrentQuestion = (): boolean => {
     const ans = answers[currentQ.questionId];
+    const qType = currentQ.questionType;
+
+    // 1. Likert Scale (OCEAN Big Five: 30 Questions)
+    if (qType === 'likert') {
+      if (!ans?.selectedOptionId) {
+        setValidationError('Please select a rating on the scale from 1 to 5 to proceed.');
+        return false;
+      }
+      setValidationError(null);
+      return true;
+    }
+
+    // 2. Subjective STAR (4 Questions on ONE scenario)
+    if (qType === 'subjective_star') {
+      const written =
+        ans?.writtenRationale?.trim() ||
+        composeRationale(ans?.situation || '', ans?.task || '', ans?.action || '', ans?.result || '');
+      if (!written || written.length < 15) {
+        setValidationError('Please provide your response for this STAR phase (at least 15 characters).');
+        return false;
+      }
+      setValidationError(null);
+      return true;
+    }
+
+    // 3. Option-Based with Optional Explanation (MBTI + Holland: 16 Questions)
+    if (qType === 'option_explain') {
+      if (!ans?.selectedOptionId) {
+        setValidationError('Please select your preferred choice before proceeding.');
+        return false;
+      }
+      // Explanation is explicitly NOT mandatory
+      setValidationError(null);
+      return true;
+    }
+
+    // 4. Classical Dual-Pane MCQ
     if (!ans?.selectedOptionId) {
       setValidationError('Step 1 Required: Please choose your preferred decision option on the left.');
       return false;
@@ -555,10 +609,28 @@ export function AssessmentRoom({
         const combined =
           a?.writtenRationale?.trim() ||
           composeRationale(a?.situation || '', a?.task || '', a?.action || '', a?.result || '');
+
+        let selectedOptionId = a?.selectedOptionId || '';
+        let writtenRationale = combined || '';
+
+        if (q.questionType === 'subjective_star') {
+          selectedOptionId = selectedOptionId || 'STAR';
+          writtenRationale = writtenRationale || 'Constructive scenario progression response provided.';
+        } else if (q.questionType === 'likert') {
+          selectedOptionId = selectedOptionId || '3';
+          writtenRationale = writtenRationale || `Likert rating: ${selectedOptionId}/5 on ${q.competencyName}`;
+        } else if (q.questionType === 'option_explain') {
+          selectedOptionId = selectedOptionId || 'A';
+          writtenRationale = writtenRationale || (a?.writtenRationale ? a.writtenRationale.trim() : 'Balanced choice selected.');
+        } else {
+          selectedOptionId = selectedOptionId || 'B';
+          writtenRationale = writtenRationale || 'Evidence provided across situation, task, action, and result dimensions.';
+        }
+
         return {
           questionId: q.questionId,
-          selectedOptionId: a?.selectedOptionId || 'B',
-          writtenRationale: combined || 'Evidence provided across situation, task, action, and result dimensions.',
+          selectedOptionId,
+          writtenRationale,
         };
       });
 
@@ -583,6 +655,7 @@ export function AssessmentRoom({
             careerStage,
             workExperience,
             targetRoleField,
+            assessmentTrack,
           },
           answers: payloadAnswers,
         }),
@@ -685,7 +758,16 @@ export function AssessmentRoom({
 
   const answeredCount = activeQuestions.filter((q) => {
     const a = answers[q.questionId];
-    return a?.selectedOptionId && (a.situation || a.writtenRationale);
+    if (q.questionType === 'likert') {
+      return !!a?.selectedOptionId;
+    }
+    if (q.questionType === 'subjective_star') {
+      return !!(a?.writtenRationale?.trim() || a?.situation?.trim() || a?.task?.trim() || a?.action?.trim() || a?.result?.trim());
+    }
+    if (q.questionType === 'option_explain') {
+      return !!a?.selectedOptionId;
+    }
+    return !!(a?.selectedOptionId && (a.situation || a.writtenRationale));
   }).length;
 
   const currentIndustryObj = INDUSTRY_OPTIONS.find((i) => i.id === targetIndustry) || INDUSTRY_OPTIONS[0];
@@ -1083,7 +1165,7 @@ export function AssessmentRoom({
                     </label>
                     <select
                       value={careerStage}
-                      onChange={(e) => setCareerStage(e.target.value)}
+                      onChange={(e) => handleCareerStageChange(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
                     >
                       {CAREER_STAGES.map((cs) => (
@@ -1114,11 +1196,116 @@ export function AssessmentRoom({
                 </div>
               </div>
 
-              {/* SECTION 5: Target Role & Assessment Language */}
+              {/* SECTION 5: Assessment Track & Methodology Selection */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
+                      5
+                    </div>
+                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                      Assessment Track &amp; Methodology
+                    </h2>
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-500">
+                    Configured for your persona
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Option 1: Working Professional */}
+                  <div
+                    onClick={() => setAssessmentTrack('professional')}
+                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                      assessmentTrack === 'professional'
+                        ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/50 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">💼</span>
+                        <h3 className="text-sm font-bold text-gray-900">
+                          Working Professional Track
+                        </h3>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${
+                        assessmentTrack === 'professional' ? 'bg-[var(--ulipsu-indigo)] text-white font-bold' : 'border border-gray-300'
+                      }`}>
+                        {assessmentTrack === 'professional' && '✓'}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+                      Tailored for corporate professionals: measures behavioral mindset and leadership execution under pressure.
+                    </p>
+                    <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-700">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0"></span>
+                        <span><strong>OCEAN (Big Five):</strong> 30 Questions (6 per dimension, 1–5 Likert scale, single-tap)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                        <span><strong>STAR Subjective:</strong> 4 Questions on 1 crisis scenario (Situation, Task, Action, Result)</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-[10px] font-semibold text-indigo-900 bg-indigo-100/60 px-2.5 py-1 rounded-lg">
+                      <span>Total: 34 Questions</span>
+                      <span>Likert + Subjective</span>
+                    </div>
+                  </div>
+
+                  {/* Option 2: Student Track */}
+                  <div
+                    onClick={() => setAssessmentTrack('student')}
+                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                      assessmentTrack === 'student'
+                        ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/50 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🎓</span>
+                        <h3 className="text-sm font-bold text-gray-900">
+                          Student Track
+                        </h3>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${
+                        assessmentTrack === 'student' ? 'bg-[var(--ulipsu-indigo)] text-white font-bold' : 'border border-gray-300'
+                      }`}>
+                        {assessmentTrack === 'student' && '✓'}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+                      Tailored for students: maps personality styles and vocational career inclinations with balanced scenarios.
+                    </p>
+                    <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-700">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
+                        <span><strong>MBTI Dimensions:</strong> 12 Questions (3 each across E/I, S/N, T/F, J/P)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0"></span>
+                        <span><strong>HOLLAND (RIASEC):</strong> 4 Questions for vocational interest mapping</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-emerald-800 font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span>Option-based • Subtle non-obvious choices • Explanation is <strong>Not Mandatory</strong></span>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-[10px] font-semibold text-emerald-900 bg-emerald-100/60 px-2.5 py-1 rounded-lg">
+                      <span>Total: 16 Questions</span>
+                      <span>Option-Based + Optional Rationale</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 6: Target Role & Assessment Language */}
               <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
-                    5
+                    6
                   </div>
                   <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
                     Target Role &amp; Preferred Assessment Language
@@ -1349,8 +1536,24 @@ export function AssessmentRoom({
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {activeQuestions.map((q, idx) => {
               const ans = answers[q.questionId];
-              const isAnswered = ans?.selectedOptionId && (ans.situation || ans.writtenRationale);
+              let isAnswered = false;
+              if (q.questionType === 'likert') {
+                isAnswered = !!ans?.selectedOptionId;
+              } else if (q.questionType === 'subjective_star') {
+                isAnswered = !!(ans?.writtenRationale?.trim() || ans?.situation?.trim() || ans?.task?.trim() || ans?.action?.trim() || ans?.result?.trim());
+              } else if (q.questionType === 'option_explain') {
+                isAnswered = !!ans?.selectedOptionId;
+              } else {
+                isAnswered = !!(ans?.selectedOptionId && (ans.situation || ans.writtenRationale));
+              }
               const isCurrent = idx === currentIdx;
+
+              let typeBadge = '';
+              if (q.category === 'ocean') typeBadge = 'OCEAN';
+              else if (q.category === 'star') typeBadge = 'STAR';
+              else if (q.category === 'mbti') typeBadge = 'MBTI';
+              else if (q.category === 'holland') typeBadge = 'Holland';
+              else typeBadge = q.competencyName || `Q${idx + 1}`;
 
               return (
                 <button
@@ -1368,7 +1571,9 @@ export function AssessmentRoom({
                   }`}
                 >
                   <span>Q{idx + 1}</span>
-                  <span className="text-[11px] opacity-80">({q.competencyName})</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/10 font-bold">
+                    {typeBadge}
+                  </span>
                   {isAnswered && !isCurrent && (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 ml-0.5" />
                   )}
@@ -1390,340 +1595,616 @@ export function AssessmentRoom({
           </div>
         </div>
 
-        {/* Clear 2-Step Explanation Banner */}
+        {/* Dynamic Workflow Banner */}
         <div className="mt-4 px-4 py-2.5 rounded-xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between text-xs text-indigo-950">
           <div className="flex items-center gap-2">
             <Info className="w-4 h-4 text-[var(--ulipsu-indigo)] shrink-0" />
             <span>
-              <strong>Two-Step Workflow:</strong> <strong>Step 1</strong> Select your action option on the left. <strong>Step 2</strong> Explain your reasoning or a past experience on the right. Both panes are evaluated together.
+              {currentQ.questionType === 'likert' ? (
+                <><strong>OCEAN Big Five (Likert Scale):</strong> Tap your rating from 1 (Strongly Disagree) to 5 (Strongly Agree). Single tap progresses your response.</>
+              ) : currentQ.questionType === 'subjective_star' ? (
+                <><strong>STAR Subjective Deep-Dive:</strong> Provide your written response for this sequential phase based on the shared incident dilemma.</>
+              ) : currentQ.questionType === 'option_explain' ? (
+                <><strong>Option-Based Assessment:</strong> Select your preferred choice. The explanation box on the right is <strong>optional / not mandatory</strong>.</>
+              ) : (
+                <><strong>Two-Step Workflow:</strong> <strong>Step 1</strong> Select your action option on the left. <strong>Step 2</strong> Explain your reasoning or a past experience on the right.</>
+              )}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={handleLoadSample}
-            className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--ulipsu-indigo)] hover:text-indigo-800 hover:underline cursor-pointer shrink-0 ml-4"
-            title="Load sample answer for this question"
-          >
-            <Sparkles className="w-3 h-3 text-[var(--ulipsu-amber)]" />
-            <span>Reset Demo Answer</span>
-          </button>
+          {currentQ.questionType !== 'likert' && currentQ.questionType !== 'subjective_star' && (
+            <button
+              type="button"
+              onClick={handleLoadSample}
+              className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--ulipsu-indigo)] hover:text-indigo-800 hover:underline cursor-pointer shrink-0 ml-4"
+              title="Load sample answer for this question"
+            >
+              <Sparkles className="w-3 h-3 text-[var(--ulipsu-amber)]" />
+              <span>Reset Demo Answer</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ================= DUAL-PANE WORKSPACE ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        
-        {/* ================= LEFT PANE: STEP 1 ================= */}
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-5 sm:p-6 flex flex-col min-h-[640px]">
-          {/* Step 1 Header */}
-          <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
+      {/* ================= WORKSPACE (TAILORED BY QUESTION TYPE) ================= */}
+
+      {/* 1. LIKERT SCALE WORKSPACE (OCEAN Big Five: 30 Questions) */}
+      {currentQ.questionType === 'likert' && (
+        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-6 sm:p-8 max-w-4xl mx-auto">
+          {/* Card Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-2.5">
-              <span className="px-2.5 py-1 rounded-lg bg-[var(--ulipsu-indigo)] text-white font-extrabold text-xs tracking-wide">
-                STEP 1
+              <span className="px-2.5 py-1 rounded-lg bg-[var(--ulipsu-indigo)] text-white font-extrabold text-xs tracking-wider">
+                LIKERT SCALE
               </span>
-              <div>
-                <h2 className="font-bold text-gray-950 text-base leading-tight">
-                  Choose Your Decision
-                </h2>
-                <p className="text-[11px] text-gray-500">Pick the action that best matches your instinct</p>
-              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-[var(--ulipsu-indigo)] border border-indigo-200">
+                {currentQ.subCategory || currentQ.competencyName}
+              </span>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--ulipsu-amber-light)] text-[var(--ulipsu-amber-hover)]">
-              {currentQ.competencyName}
+            <span className="text-xs font-medium text-gray-500">
+              Single-tap response • Immediate progression
             </span>
           </div>
 
-          {/* Scenario Dilemma Box with Simplify Toggle */}
-          <div className="my-4 p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-sm leading-relaxed">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 font-bold text-xs text-gray-800 uppercase tracking-wide">
-                <BookOpen className="w-3.5 h-3.5 text-[var(--ulipsu-indigo)]" />
-                <span>Workplace Scenario {currentIdx + 1}:</span>
-              </div>
-
-              {/* Simplify Toggle Button */}
-              <button
-                type="button"
-                onClick={() =>
-                  setSimplifiedMap((prev) => ({
-                    ...prev,
-                    [currentQ.questionId]: !prev[currentQ.questionId],
-                  }))
-                }
-                className={`text-xs px-2.5 py-1 rounded-lg border font-semibold transition flex items-center gap-1.5 cursor-pointer ${
-                  isSimplified
-                    ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs'
-                    : 'bg-white text-gray-700 hover:text-[var(--ulipsu-indigo)] border-gray-200 hover:border-gray-300'
-                }`}
-                title="Toggle plain language scenario without any score penalty"
-              >
-                {isSimplified ? (
-                  <>
-                    <RotateCcw className="w-3 h-3 text-amber-700" />
-                    <span>Original Text</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3 h-3 text-[var(--ulipsu-amber)]" />
-                    <span>Simplify Scenario</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Notice if simplified */}
-            {isSimplified && (
-              <div className="mb-2.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5 font-medium">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                <span>Plain Language Mode Active • No score penalty • Identical evaluation criteria</span>
-              </div>
-            )}
-
-            <p className="text-gray-900 text-sm leading-relaxed font-normal">
-              {currentScenarioText}
+          {/* Statement Box */}
+          <div className="my-6 p-6 sm:p-8 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">
+              Behavioral Mindset Statement
+            </span>
+            <p className="text-lg sm:text-xl font-medium text-gray-950 leading-relaxed max-w-2xl mx-auto">
+              "{currentScenarioText}"
             </p>
           </div>
 
-          {/* MCQ Options List */}
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Which option would you choose?
-              </span>
+          {/* 5-Point Likert Options */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-gray-600 px-1">
+              <span>Rate your level of agreement:</span>
               {currentAnswer.selectedOptionId && (
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Option {currentAnswer.selectedOptionId} Selected
+                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> Rating recorded
                 </span>
               )}
             </div>
 
-            {localizedContent.mcqOptions.map((opt) => {
-              const isSelected = currentAnswer.selectedOptionId === opt.id;
-              return (
-                <div
-                  key={opt.id}
-                  onClick={() => handleSelectOption(opt.id)}
-                  className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-start gap-3 select-none ${
-                    isSelected
-                      ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/50 shadow-xs'
-                      : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/60'
-                  }`}
-                >
-                  <div
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors mt-0.5 ${
-                      isSelected
-                        ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
-                        : 'border border-gray-300 text-gray-600 bg-gray-50'
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+              {(localizedContent.mcqOptions || []).map((opt) => {
+                const isSelected = currentAnswer.selectedOptionId === opt.id;
+                const colors = [
+                  { bg: 'hover:bg-rose-50 border-rose-200', active: 'border-rose-500 bg-rose-50/80 ring-2 ring-rose-500/20 text-rose-950' },
+                  { bg: 'hover:bg-orange-50 border-orange-200', active: 'border-orange-500 bg-orange-50/80 ring-2 ring-orange-500/20 text-orange-950' },
+                  { bg: 'hover:bg-slate-50 border-slate-200', active: 'border-slate-500 bg-slate-100 ring-2 ring-slate-500/20 text-slate-950' },
+                  { bg: 'hover:bg-indigo-50 border-indigo-200', active: 'border-indigo-500 bg-indigo-50/80 ring-2 ring-indigo-500/20 text-indigo-950' },
+                  { bg: 'hover:bg-emerald-50 border-emerald-200', active: 'border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-500/20 text-emerald-950' },
+                ];
+                const colorScheme = colors[Number(opt.id) - 1] || colors[2];
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleSelectOption(opt.id)}
+                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-between text-center min-h-[120px] cursor-pointer ${
+                      isSelected ? colorScheme.active : `border-gray-200 bg-white ${colorScheme.bg}`
                     }`}
                   >
-                    {opt.id}
-                  </div>
-                  <div className="flex-1">
-                    <p
-                      className={`text-xs sm:text-sm leading-relaxed ${
-                        isSelected ? 'font-semibold text-gray-950' : 'text-gray-700 font-normal'
-                      }`}
-                    >
-                      {opt.text}
-                    </p>
-                  </div>
-                  {isSelected && (
-                    <div className="shrink-0 text-[var(--ulipsu-indigo)] font-bold text-xs flex items-center gap-1 mt-0.5">
-                      <CheckCircle2 className="w-4 h-4 text-[var(--ulipsu-indigo)]" />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-sm mb-2 ${
+                      isSelected ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {opt.id}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                    <span className={`text-xs leading-snug ${isSelected ? 'font-bold' : 'font-medium text-gray-700'}`}>
+                      {opt.text}
+                    </span>
+                    {isSelected && (
+                      <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Selected
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="pt-3 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
-            <span>Competency: {currentQ.competencyName}</span>
+          <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+            <span>Dimension: OCEAN Big Five</span>
             <span>Rubric: {currentQ.idealEvidenceCriteria}</span>
           </div>
         </div>
+      )}
 
-        {/* ================= RIGHT PANE: STEP 2 ================= */}
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-5 sm:p-6 flex flex-col min-h-[640px]">
-          {/* Step 2 Header */}
-          <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
+      {/* 2. STAR SUBJECTIVE WORKSPACE (1 Scenario, 4 Sequential Phases) */}
+      {currentQ.questionType === 'subjective_star' && (
+        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-6 sm:p-8 max-w-4xl mx-auto">
+          {/* Card Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-2.5">
-              <span className="px-2.5 py-1 rounded-lg bg-[var(--ulipsu-amber)] text-gray-950 font-extrabold text-xs tracking-wide">
-                STEP 2
+              <span className="px-2.5 py-1 rounded-lg bg-[var(--ulipsu-amber)] text-gray-950 font-extrabold text-xs tracking-wider">
+                STAR SUBJECTIVE
               </span>
-              <div>
-                <h2 className="font-bold text-gray-950 text-base leading-tight">
-                  Explain Your Approach
-                </h2>
-                <p className="text-[11px] text-gray-500">Provide evidence from your reasoning or past experience</p>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200">
+                {currentQ.subCategory || currentQ.competencyName}
+              </span>
+            </div>
+            <span className="text-xs font-medium text-amber-800 bg-amber-100/60 px-2.5 py-0.5 rounded-md">
+              1 Incident Scenario • 4 Sequential Phases
+            </span>
+          </div>
+
+          {/* Incident Scenario Card (Shared across S, T, A, R) */}
+          <div className="my-5 p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-gray-800 uppercase tracking-wider">
+              <BookOpen className="w-4 h-4 text-[var(--ulipsu-indigo)]" />
+              <span>Real-World Incident Scenario Context:</span>
+            </div>
+            <p className="text-gray-900 text-xs sm:text-sm leading-relaxed">
+              {currentScenarioText}
+            </p>
+          </div>
+
+          {/* STAR Phase Prompt */}
+          <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-100 mb-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-[var(--ulipsu-indigo)] uppercase tracking-wider mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-[var(--ulipsu-amber)]" />
+              <span>{localizedContent.title || currentQ.competencyName}:</span>
+            </div>
+            <p className="text-gray-900 text-sm font-semibold leading-relaxed">
+              {localizedContent.writtenPrompt || currentScenarioText}
+            </p>
+          </div>
+
+          {/* Subjective Textarea */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-gray-800">
+              Your Subjective Response for this Phase:
+              <span className="text-red-500 ml-0.5">*</span>
+            </label>
+            <textarea
+              value={currentAnswer.writtenRationale}
+              onChange={(e) => handleFreeformChange(e.target.value)}
+              placeholder={localizedContent.writtenPlaceholder || 'Detail your concrete steps, decision logic, and trade-offs for this phase...'}
+              rows={8}
+              className="w-full p-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 placeholder-gray-400 resize-none transition leading-relaxed"
+            />
+            <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Minimum 15 characters required</span>
               </div>
+              <span className={`font-semibold px-2 py-0.5 rounded-md text-[11px] ${
+                wordCount >= 10 ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {wordCount} words written
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. STUDENT OPTION-BASED WORKSPACE WITH OPTIONAL EXPLANATION (MBTI + Holland: 16 Questions) */}
+      {currentQ.questionType === 'option_explain' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* Left Column: Subtle Balanced Options */}
+          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-5 sm:p-6 flex flex-col min-h-[560px]">
+            <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-[var(--ulipsu-indigo)] text-white font-extrabold text-xs tracking-wider">
+                  {currentQ.category?.toUpperCase() || 'CHOICE'}
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-[var(--ulipsu-indigo)] border border-indigo-200">
+                  {currentQ.subCategory || currentQ.competencyName}
+                </span>
+              </div>
+              <span className="text-[11px] text-gray-500 font-medium">Select your natural tendency</span>
             </div>
 
-            {/* Mode Switcher: Guided (4 Fields) vs Open Freeform */}
-            <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs">
-              <button
-                type="button"
-                onClick={() => setResponseMode('guided')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 cursor-pointer ${
-                  responseMode === 'guided'
-                    ? 'bg-white text-[var(--ulipsu-indigo)] shadow-2xs'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                title="Structured 4-step guided response"
-              >
-                <LayoutList className="w-3.5 h-3.5" />
-                <span>Guided 4 Steps</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setResponseMode('freeform')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 cursor-pointer ${
-                  responseMode === 'freeform'
-                    ? 'bg-white text-[var(--ulipsu-indigo)] shadow-2xs'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                title="Open single box response"
-              >
-                <AlignLeft className="w-3.5 h-3.5" />
-                <span>Single Box</span>
-              </button>
+            {/* Dilemma Prompt */}
+            <div className="my-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <p className="text-gray-900 text-sm font-medium leading-relaxed">
+                {currentScenarioText}
+              </p>
+            </div>
+
+            {/* Balanced Options List */}
+            <div className="space-y-3 flex-1">
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">
+                Which option resonates most with you?
+              </span>
+
+              {(localizedContent.mcqOptions || []).map((opt) => {
+                const isSelected = currentAnswer.selectedOptionId === opt.id;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => handleSelectOption(opt.id)}
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-start gap-3 select-none ${
+                      isSelected
+                        ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/50 shadow-xs'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/60'
+                    }`}
+                  >
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors mt-0.5 ${
+                        isSelected
+                          ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
+                          : 'border border-gray-300 text-gray-600 bg-gray-50'
+                      }`}
+                    >
+                      {opt.id}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-xs sm:text-sm leading-relaxed ${
+                        isSelected ? 'font-semibold text-gray-950' : 'text-gray-700 font-normal'
+                      }`}>
+                        {opt.text}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <div className="shrink-0 text-[var(--ulipsu-indigo)] font-bold text-xs flex items-center gap-1 mt-0.5">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--ulipsu-indigo)]" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+              <span>{currentQ.competencyName}</span>
+              <span>Rubric: {currentQ.idealEvidenceCriteria}</span>
             </div>
           </div>
 
-          {/* Decision Context Callout (Connecting Step 1 to Step 2) */}
-          <div className="my-4 p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 leading-relaxed">
-            {selectedOptionObj ? (
-              <div>
-                <div className="font-bold flex items-center gap-1.5 text-amber-900 mb-0.5">
-                  <ArrowRight className="w-3.5 h-3.5 text-[var(--ulipsu-amber)]" />
-                  <span>Connecting to your Step 1 choice: Option {selectedOptionObj.id}</span>
-                </div>
-                <p className="text-amber-900 font-normal">
-                  Explain why Option {selectedOptionObj.id} was your choice, or describe a real project/work situation where you faced a similar challenge in {currentIndustryObj.name}.
-                </p>
+          {/* Right Column: Optional Explanation Box */}
+          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-5 sm:p-6 flex flex-col min-h-[560px]">
+            <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold text-xs tracking-wider">
+                  PERSPECTIVE
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  Optional Rationale
+                </span>
               </div>
-            ) : (
-              <div className="text-gray-600 italic">
-                Tip: Choose an option in Step 1 on the left first. Then justify your reasoning or share a past experience here.
-              </div>
-            )}
-          </div>
-
-          {/* Form Content: Guided vs Freeform */}
-          {responseMode === 'guided' ? (
-            <div className="space-y-3.5 flex-1 overflow-y-auto pr-1">
-              {/* Field 1: Situation */}
-              <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-gray-900">
-                    {fieldGuides.situation.label}
-                  </label>
-                  <span className="text-[10px] text-gray-500">Context &amp; Challenge</span>
-                </div>
-                <p className="text-[11px] text-gray-600 mb-2 leading-tight">
-                  {fieldGuides.situation.question}
-                </p>
-                <textarea
-                  value={currentAnswer.situation || ''}
-                  onChange={(e) => handleFieldChange('situation', e.target.value)}
-                  placeholder={fieldGuides.situation.placeholder}
-                  rows={2}
-                  className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
-                />
-              </div>
-
-              {/* Field 2: Task */}
-              <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-gray-900">
-                    {fieldGuides.task.label}
-                  </label>
-                  <span className="text-[10px] text-gray-500">Role &amp; Responsibility</span>
-                </div>
-                <p className="text-[11px] text-gray-600 mb-2 leading-tight">
-                  {fieldGuides.task.question}
-                </p>
-                <textarea
-                  value={currentAnswer.task || ''}
-                  onChange={(e) => handleFieldChange('task', e.target.value)}
-                  placeholder={fieldGuides.task.placeholder}
-                  rows={2}
-                  className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
-                />
-              </div>
-
-              {/* Field 3: Action */}
-              <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-gray-900">
-                    {fieldGuides.action.label}
-                  </label>
-                  <span className="text-[10px] text-gray-500">Steps Personally Executed</span>
-                </div>
-                <p className="text-[11px] text-gray-600 mb-2 leading-tight">
-                  {fieldGuides.action.question}
-                </p>
-                <textarea
-                  value={currentAnswer.action || ''}
-                  onChange={(e) => handleFieldChange('action', e.target.value)}
-                  placeholder={fieldGuides.action.placeholder}
-                  rows={3}
-                  className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
-                />
-              </div>
-
-              {/* Field 4: Result */}
-              <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-gray-900">
-                    {fieldGuides.result.label}
-                  </label>
-                  <span className="text-[10px] text-gray-500">Outcome &amp; Lasting Impact</span>
-                </div>
-                <p className="text-[11px] text-gray-600 mb-2 leading-tight">
-                  {fieldGuides.result.question}
-                </p>
-                <textarea
-                  value={currentAnswer.result || ''}
-                  onChange={(e) => handleFieldChange('result', e.target.value)}
-                  placeholder={fieldGuides.result.placeholder}
-                  rows={2}
-                  className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
-                />
-              </div>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                Not Mandatory
+              </span>
             </div>
-          ) : (
-            /* Freeform View */
+
+            <div className="my-4 p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 text-xs text-emerald-950 leading-relaxed">
+              <div className="font-bold flex items-center gap-1.5 text-emerald-900 mb-1">
+                <Info className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Explain your choice (Optional):</span>
+              </div>
+              <p className="text-emerald-900/90 font-normal">
+                You can write a short note explaining why this option fits you better, or simply leave this blank and move forward. Your choice alone is fully valid.
+              </p>
+            </div>
+
             <div className="flex-1 flex flex-col">
-              <label className="text-xs font-bold text-gray-800 mb-1">
-                Your Complete Rationale &amp; Experience:
-              </label>
               <textarea
                 value={currentAnswer.writtenRationale}
                 onChange={(e) => handleFreeformChange(e.target.value)}
-                placeholder={localizedContent.writtenPlaceholder}
-                rows={14}
-                className="w-full flex-1 p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-800 placeholder-gray-400 resize-none transition-all leading-relaxed"
+                placeholder={localizedContent.writtenPlaceholder || 'Optional: Briefly share why you chose this option...'}
+                rows={12}
+                className="w-full flex-1 p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-xs sm:text-sm text-gray-800 placeholder-gray-400 resize-none transition leading-relaxed"
               />
             </div>
-          )}
 
-          {/* Step 2 Footer Count */}
-          <div className="flex items-center justify-between mt-3 text-xs text-gray-500 pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[11px]">Draft autosaved</span>
+            <div className="flex items-center justify-between mt-3 text-xs text-gray-500 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[11px]">Autosaved</span>
+              </div>
+              <span className="text-[11px] text-gray-500">
+                {wordCount > 0 ? `${wordCount} words (Optional)` : 'Optional - can be left blank'}
+              </span>
             </div>
-            <span
-              className={`font-semibold px-2 py-0.5 rounded-md text-[11px] ${
-                wordCount > 30 ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {wordCount} words written
-            </span>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* 4. CLASSICAL DUAL-PANE WORKSPACE (Fallback for other tracks) */}
+      {(!currentQ.questionType || currentQ.questionType === 'mcq_dual') && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          
+          {/* LEFT PANE: STEP 1 */}
+          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-5 sm:p-6 flex flex-col min-h-[640px]">
+            <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded-lg bg-[var(--ulipsu-indigo)] text-white font-extrabold text-xs tracking-wide">
+                  STEP 1
+                </span>
+                <div>
+                  <h2 className="font-bold text-gray-950 text-base leading-tight">
+                    Choose Your Decision
+                  </h2>
+                  <p className="text-[11px] text-gray-500">Pick the action that best matches your instinct</p>
+                </div>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--ulipsu-amber-light)] text-[var(--ulipsu-amber-hover)]">
+                {currentQ.competencyName}
+              </span>
+            </div>
+
+            <div className="my-4 p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-sm leading-relaxed">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5 font-bold text-xs text-gray-800 uppercase tracking-wide">
+                  <BookOpen className="w-3.5 h-3.5 text-[var(--ulipsu-indigo)]" />
+                  <span>Workplace Scenario {currentIdx + 1}:</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSimplifiedMap((prev) => ({
+                      ...prev,
+                      [currentQ.questionId]: !prev[currentQ.questionId],
+                    }))
+                  }
+                  className={`text-xs px-2.5 py-1 rounded-lg border font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+                    isSimplified
+                      ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs'
+                      : 'bg-white text-gray-700 hover:text-[var(--ulipsu-indigo)] border-gray-200 hover:border-gray-300'
+                  }`}
+                  title="Toggle plain language scenario without any score penalty"
+                >
+                  {isSimplified ? (
+                    <>
+                      <RotateCcw className="w-3 h-3 text-amber-700" />
+                      <span>Original Text</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3 h-3 text-[var(--ulipsu-amber)]" />
+                      <span>Simplify Scenario</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {isSimplified && (
+                <div className="mb-2.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5 font-medium">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                  <span>Plain Language Mode Active • No score penalty • Identical evaluation criteria</span>
+                </div>
+              )}
+
+              <p className="text-gray-900 text-sm leading-relaxed font-normal">
+                {currentScenarioText}
+              </p>
+            </div>
+
+            <div className="space-y-3 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Which option would you choose?
+                </span>
+                {currentAnswer.selectedOptionId && (
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Option {currentAnswer.selectedOptionId} Selected
+                  </span>
+                )}
+              </div>
+
+              {(localizedContent.mcqOptions || []).map((opt) => {
+                const isSelected = currentAnswer.selectedOptionId === opt.id;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => handleSelectOption(opt.id)}
+                    className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-start gap-3 select-none ${
+                      isSelected
+                        ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/50 shadow-xs'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/60'
+                    }`}
+                  >
+                    <div
+                      className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors mt-0.5 ${
+                        isSelected
+                          ? 'bg-[var(--ulipsu-indigo)] text-white shadow-xs'
+                          : 'border border-gray-300 text-gray-600 bg-gray-50'
+                      }`}
+                    >
+                      {opt.id}
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={`text-xs sm:text-sm leading-relaxed ${
+                          isSelected ? 'font-semibold text-gray-950' : 'text-gray-700 font-normal'
+                        }`}
+                      >
+                        {opt.text}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <div className="shrink-0 text-[var(--ulipsu-indigo)] font-bold text-xs flex items-center gap-1 mt-0.5">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--ulipsu-indigo)]" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+              <span>Competency: {currentQ.competencyName}</span>
+              <span>Rubric: {currentQ.idealEvidenceCriteria}</span>
+            </div>
+          </div>
+
+          {/* RIGHT PANE: STEP 2 */}
+          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-5 sm:p-6 flex flex-col min-h-[640px]">
+            <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded-lg bg-[var(--ulipsu-amber)] text-gray-950 font-extrabold text-xs tracking-wide">
+                  STEP 2
+                </span>
+                <div>
+                  <h2 className="font-bold text-gray-950 text-base leading-tight">
+                    Explain Your Approach
+                  </h2>
+                  <p className="text-[11px] text-gray-500">Provide evidence from your reasoning or past experience</p>
+                </div>
+              </div>
+
+              <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setResponseMode('guided')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 cursor-pointer ${
+                    responseMode === 'guided'
+                      ? 'bg-white text-[var(--ulipsu-indigo)] shadow-2xs'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Structured 4-step guided response"
+                >
+                  <LayoutList className="w-3.5 h-3.5" />
+                  <span>Guided 4 Steps</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResponseMode('freeform')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 cursor-pointer ${
+                    responseMode === 'freeform'
+                      ? 'bg-white text-[var(--ulipsu-indigo)] shadow-2xs'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Open single box response"
+                >
+                  <AlignLeft className="w-3.5 h-3.5" />
+                  <span>Single Box</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="my-4 p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 leading-relaxed">
+              {selectedOptionObj ? (
+                <div>
+                  <div className="font-bold flex items-center gap-1.5 text-amber-900 mb-0.5">
+                    <ArrowRight className="w-3.5 h-3.5 text-[var(--ulipsu-amber)]" />
+                    <span>Connecting to your Step 1 choice: Option {selectedOptionObj.id}</span>
+                  </div>
+                  <p className="text-amber-900 font-normal">
+                    Explain why Option {selectedOptionObj.id} was your choice, or describe a real project/work situation where you faced a similar challenge in {currentIndustryObj.name}.
+                  </p>
+                </div>
+              ) : (
+                <div className="text-gray-600 italic">
+                  Tip: Choose an option in Step 1 on the left first. Then justify your reasoning or share a past experience here.
+                </div>
+              )}
+            </div>
+
+            {responseMode === 'guided' ? (
+              <div className="space-y-3.5 flex-1 overflow-y-auto pr-1">
+                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-gray-900">
+                      {fieldGuides.situation.label}
+                    </label>
+                    <span className="text-[10px] text-gray-500">Context &amp; Challenge</span>
+                  </div>
+                  <p className="text-[11px] text-gray-600 mb-2 leading-tight">
+                    {fieldGuides.situation.question}
+                  </p>
+                  <textarea
+                    value={currentAnswer.situation || ''}
+                    onChange={(e) => handleFieldChange('situation', e.target.value)}
+                    placeholder={fieldGuides.situation.placeholder}
+                    rows={2}
+                    className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-gray-900">
+                      {fieldGuides.task.label}
+                    </label>
+                    <span className="text-[10px] text-gray-500">Role &amp; Responsibility</span>
+                  </div>
+                  <p className="text-[11px] text-gray-600 mb-2 leading-tight">
+                    {fieldGuides.task.question}
+                  </p>
+                  <textarea
+                    value={currentAnswer.task || ''}
+                    onChange={(e) => handleFieldChange('task', e.target.value)}
+                    placeholder={fieldGuides.task.placeholder}
+                    rows={2}
+                    className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-gray-900">
+                      {fieldGuides.action.label}
+                    </label>
+                    <span className="text-[10px] text-gray-500">Steps Personally Executed</span>
+                  </div>
+                  <p className="text-[11px] text-gray-600 mb-2 leading-tight">
+                    {fieldGuides.action.question}
+                  </p>
+                  <textarea
+                    value={currentAnswer.action || ''}
+                    onChange={(e) => handleFieldChange('action', e.target.value)}
+                    placeholder={fieldGuides.action.placeholder}
+                    rows={3}
+                    className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 hover:bg-gray-50 transition">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-gray-900">
+                      {fieldGuides.result.label}
+                    </label>
+                    <span className="text-[10px] text-gray-500">Outcome &amp; Lasting Impact</span>
+                  </div>
+                  <p className="text-[11px] text-gray-600 mb-2 leading-tight">
+                    {fieldGuides.result.question}
+                  </p>
+                  <textarea
+                    value={currentAnswer.result || ''}
+                    onChange={(e) => handleFieldChange('result', e.target.value)}
+                    placeholder={fieldGuides.result.placeholder}
+                    rows={2}
+                    className="w-full p-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-800 placeholder-gray-400 resize-none transition"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col">
+                <label className="text-xs font-bold text-gray-800 mb-1">
+                  Your Complete Rationale &amp; Experience:
+                </label>
+                <textarea
+                  value={currentAnswer.writtenRationale}
+                  onChange={(e) => handleFreeformChange(e.target.value)}
+                  placeholder={localizedContent.writtenPlaceholder}
+                  rows={14}
+                  className="w-full flex-1 p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-800 placeholder-gray-400 resize-none transition-all leading-relaxed"
+                />
+              </div>
+            )}
+
+            <div className="flex items-center justify-between mt-3 text-xs text-gray-500 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[11px]">Draft autosaved</span>
+              </div>
+              <span
+                className={`font-semibold px-2 py-0.5 rounded-md text-[11px] ${
+                  wordCount > 30 ? 'bg-emerald-50 text-emerald-800' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {wordCount} words written
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================= UNIFIED BOTTOM NAVIGATION BAR ================= */}
       <div className="mt-6 bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">

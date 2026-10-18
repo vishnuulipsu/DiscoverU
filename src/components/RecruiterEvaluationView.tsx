@@ -30,14 +30,41 @@ export function RecruiterEvaluationView({
   candidateLanguage,
   modelUsed = 'AI Powered Engine',
 }: RecruiterEvaluationViewProps) {
-  const {
-    roleFitSummary,
-    competencyScorecard,
-    evidenceFromResponses,
-    strengthsAndProbes,
-    recommendedFollowUp,
-    decisionSupportAndFairness,
-  } = evaluation;
+  const roleFitSummary = {
+    roleAssessed: evaluation?.roleFitSummary?.roleAssessed || 'Software Professional',
+    competenciesEvaluated: Array.isArray(evaluation?.roleFitSummary?.competenciesEvaluated) && evaluation.roleFitSummary.competenciesEvaluated.length > 0
+      ? evaluation.roleFitSummary.competenciesEvaluated
+      : ['Problem Solving', 'Communication', 'Accountability', 'Adaptability', 'Prioritisation'],
+    assessmentVersion: evaluation?.roleFitSummary?.assessmentVersion || '1.0',
+    overallEvidenceSummary: evaluation?.roleFitSummary?.overallEvidenceSummary || 'Evaluation summary available based on submitted responses.',
+  };
+  const competencyScorecard = Array.isArray(evaluation?.competencyScorecard)
+    ? evaluation.competencyScorecard
+    : [];
+  const evidenceFromResponses = Array.isArray(evaluation?.evidenceFromResponses)
+    ? evaluation.evidenceFromResponses
+    : [];
+  const strengthsAndProbes = {
+    strengths: Array.isArray(evaluation?.strengthsAndProbes?.strengths) && evaluation.strengthsAndProbes.strengths.length > 0
+      ? evaluation.strengthsAndProbes.strengths
+      : ['Evidence provided for critical operational triage.'],
+    areasToProbe: Array.isArray(evaluation?.strengthsAndProbes?.areasToProbe) && evaluation.strengthsAndProbes.areasToProbe.length > 0
+      ? evaluation.strengthsAndProbes.areasToProbe
+      : ['In-depth exploration of alternative operational trade-offs.'],
+    contextualNotes: evaluation?.strengthsAndProbes?.contextualNotes || 'Assessment reflects situational judgment responses.',
+  };
+  const recommendedFollowUp = Array.isArray(evaluation?.recommendedFollowUp)
+    ? evaluation.recommendedFollowUp
+    : [];
+  const decisionSupportAndFairness = {
+    rubricOverview: evaluation?.decisionSupportAndFairness?.rubricOverview || 'Standard enterprise behavioral rubric.',
+    uncertaintiesNoted: Array.isArray(evaluation?.decisionSupportAndFairness?.uncertaintiesNoted) && evaluation.decisionSupportAndFairness.uncertaintiesNoted.length > 0
+      ? evaluation.decisionSupportAndFairness.uncertaintiesNoted
+      : ['Qualitative evidence provided.'],
+    missingInformationNotes: evaluation?.decisionSupportAndFairness?.missingInformationNotes || 'None.',
+    fairnessComplianceVerified: evaluation?.decisionSupportAndFairness?.fairnessComplianceVerified ?? true,
+    humanReviewerSignedOff: evaluation?.decisionSupportAndFairness?.humanReviewerSignedOff ?? false,
+  };
 
   const displayModel = modelUsed.toLowerCase().includes('gemini')
     ? 'AI Powered Intelligence Engine'

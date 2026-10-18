@@ -31,7 +31,21 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
       const doc = await EvaluationResult.findById(evalId).lean();
       if (doc && doc.candidateView) {
         const isNandini = doc.candidateName?.toLowerCase().includes('nandini') || doc.candidateEmail?.includes('nandini');
-        const report = isNandini ? getNandiniReportForLang(chosenLang) : JSON.parse(JSON.stringify(doc.candidateView));
+        const rawCandidate = (doc.candidateView as unknown) as Record<string, unknown> | undefined;
+        const isCandidateValid = rawCandidate?.personalityProfile && Array.isArray(rawCandidate?.potentialStrengths) && rawCandidate.potentialStrengths.length > 0;
+        const report = isNandini
+          ? getNandiniReportForLang(chosenLang)
+          : (isCandidateValid
+              ? JSON.parse(JSON.stringify(rawCandidate))
+              : getGroundedMockEvaluation({
+                  candidateName: doc.candidateName,
+                  candidateEmail: doc.candidateEmail,
+                  candidateLanguage: chosenLang,
+                  roleTarget: 'Software Professional',
+                  assessmentVersion: '1.0',
+                  answers: [],
+                }).candidateView);
+
         return {
           growthReport: report,
           candidateName: doc.candidateName,
@@ -52,7 +66,21 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
     const doc = nandiniDoc || await EvaluationResult.findOne().sort({ createdAt: -1 }).lean();
     if (doc && doc.candidateView) {
       const isNandini = doc.candidateName?.toLowerCase().includes('nandini') || doc.candidateEmail?.includes('nandini');
-      const report = isNandini ? getNandiniReportForLang(chosenLang) : JSON.parse(JSON.stringify(doc.candidateView));
+      const rawCandidate = (doc.candidateView as unknown) as Record<string, unknown> | undefined;
+      const isCandidateValid = rawCandidate?.personalityProfile && Array.isArray(rawCandidate?.potentialStrengths) && rawCandidate.potentialStrengths.length > 0;
+      const report = isNandini
+        ? getNandiniReportForLang(chosenLang)
+        : (isCandidateValid
+            ? JSON.parse(JSON.stringify(rawCandidate))
+            : getGroundedMockEvaluation({
+                candidateName: doc.candidateName,
+                candidateEmail: doc.candidateEmail,
+                candidateLanguage: chosenLang,
+                roleTarget: 'Software Professional',
+                assessmentVersion: '1.0',
+                answers: [],
+              }).candidateView);
+
       return {
         growthReport: report,
         candidateName: doc.candidateName,

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { IDualPaneQuestion } from '@/models/Assessment';
 import { 
@@ -158,6 +159,40 @@ const TEST_TRACKS = [
   { id: 'governance', name: 'Enterprise Governance & Regulatory Agility', questionsCount: '2 Dilemmas', desc: 'Focus on sudden compliance mandates, review ownership & accountability' },
 ];
 
+// Creative loader insights cycling while AI Engine is running
+const CREATIVE_LOADER_INSIGHTS = [
+  {
+    icon: '🧠',
+    title: 'Synthesizing Cognitive Dilemmas',
+    detail: 'Constructing high-stakes workplace scenarios with realistic operational trade-offs and competing business constraints...',
+  },
+  {
+    icon: '⚡',
+    title: 'Contextualizing Industry Realities',
+    detail: 'Injecting technical edge cases, architecture friction, and cross-functional team dynamics tailored to your domain...',
+  },
+  {
+    icon: '📐',
+    title: 'Calibrating Multi-Dimensional Rubrics',
+    detail: 'Formulating structured Situation, Task, Action & Result (STAR) evaluation vectors with zero construct loss...',
+  },
+  {
+    icon: '🌐',
+    title: 'Ensuring Trilingual Parity',
+    detail: 'Cross-aligning cognitive nuances across English, Hindi, and Kannada for bias-free, language-neutral evaluation...',
+  },
+  {
+    icon: '🎯',
+    title: 'Engineering Decision Vectors',
+    detail: 'Balancing short-term fixes against root-cause remedies to accurately measure strategic foresight and execution rigor...',
+  },
+  {
+    icon: '🚀',
+    title: 'Assembling Test Environment',
+    detail: 'Finalizing dual-pane workspace, interactive prompts, and baseline scoring thresholds for your session...',
+  },
+];
+
 export function AssessmentRoom({
   assessmentId: initialAssessmentId,
   roleTarget: initialRoleTarget,
@@ -168,6 +203,9 @@ export function AssessmentRoom({
   const router = useRouter();
   const [language, setLanguage] = useState<'en' | 'hi' | 'kn'>(initialLanguage);
   const [currentIdx, setCurrentIdx] = useState(0);
+
+  // Creative cycling insight state while generating
+  const [creativeInsightIdx, setCreativeInsightIdx] = useState(0);
 
   // Assessment Initiation State: false by default so candidate completes onboarding first
   const [hasStarted, setHasStarted] = useState(false);
@@ -207,6 +245,18 @@ export function AssessmentRoom({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Creative loader insight cycling
+  useEffect(() => {
+    if (!isGenerating) {
+      setCreativeInsightIdx(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setCreativeInsightIdx((prev) => (prev + 1) % CREATIVE_LOADER_INSIGHTS.length);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   const currentQ = activeQuestions[currentIdx] || activeQuestions[0];
   const localizedContent = currentQ[language] || currentQ.en;
@@ -350,7 +400,7 @@ export function AssessmentRoom({
 
         const indName = INDUSTRY_OPTIONS.find((i) => i.id === targetIndustry)?.name || targetIndustry;
         const feedbackMsg = data.generatedByAi 
-          ? `✨ Gemini AI synthesized ${data.questions.length} tailored dilemmas for ${roleToSend} in ${indName}!`
+          ? `✨ DiscoverU AI Engine synthesized ${data.questions.length} tailored dilemmas for ${roleToSend} in ${indName}!`
           : `Assessment tailored for ${roleToSend} in ${indName}!`;
         setGenerationFeedback(feedbackMsg);
         setTimeout(() => setGenerationFeedback(null), 6000);
@@ -361,7 +411,7 @@ export function AssessmentRoom({
           }, 600);
         }
       } else {
-        setValidationError(data.error || 'Failed to generate tailored questions with Gemini.');
+        setValidationError(data.error || 'Failed to generate tailored questions with DiscoverU AI Engine.');
       }
     } catch (err: unknown) {
       setValidationError(err instanceof Error ? err.message : 'Generation failed.');
@@ -553,33 +603,76 @@ export function AssessmentRoom({
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 font-sans">
         {/* If isGenerating, show high-tech dynamic generation screen */}
         {isGenerating ? (
-          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-indigo-100 shadow-xl text-center max-w-2xl mx-auto animate-in fade-in zoom-in-95">
-            <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ulipsu-indigo)] to-[var(--ulipsu-amber)] animate-spin blur-md opacity-70"></div>
-              <div className="relative w-full h-full rounded-full bg-white flex items-center justify-center border-2 border-indigo-100 shadow-inner">
-                <Sparkles className="w-9 h-9 text-[var(--ulipsu-indigo)] animate-pulse" />
+          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-indigo-100 shadow-2xl text-center max-w-2xl mx-auto animate-in fade-in zoom-in-95">
+            {/* DiscoverU Logo with Animated Aura */}
+            <div className="relative w-24 h-24 mx-auto mb-5">
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-[var(--ulipsu-indigo)] via-purple-600 to-[var(--ulipsu-amber)] animate-spin blur-md opacity-60"></div>
+              <div className="relative w-full h-full rounded-3xl bg-white flex items-center justify-center border-2 border-indigo-100 shadow-xl p-3">
+                <Image
+                  src="/logo-icon.png"
+                  alt="DiscoverU"
+                  width={60}
+                  height={60}
+                  className="object-contain"
+                  priority
+                />
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-[11px] font-bold uppercase tracking-wider text-[var(--ulipsu-indigo)] mb-3">
-              Google Gemini 2.5 Flash
-            </span>
+            {/* AI Engine is running Status Pill */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 mb-4 shadow-xs">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span>AI Engine is running</span>
+            </div>
 
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 mb-2 tracking-tight">
               Synthesizing Your Assessment
             </h2>
-            <p className="text-sm text-gray-600 mb-8 max-w-md mx-auto">
-              Generating tailored situational dilemmas for <span className="font-semibold text-gray-900">{resolvedRole}</span> targeting <span className="font-semibold text-gray-900">{currentIndustryObj.name}</span>.
+            <p className="text-xs sm:text-sm text-gray-600 mb-6 max-w-md mx-auto">
+              Tailoring situational dilemmas for <span className="font-semibold text-gray-900">{resolvedRole}</span> targeting <span className="font-semibold text-gray-900">{currentIndustryObj.name}</span>.
             </p>
 
+            {/* Creative Rotating Insight Card */}
+            <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-purple-50/50 to-amber-50/40 border border-indigo-100/90 text-left shadow-xs transition-all duration-500">
+              <div className="flex items-start gap-3.5">
+                <span className="text-2xl select-none shrink-0 p-2 bg-white rounded-xl border border-indigo-100 shadow-xs">
+                  {CREATIVE_LOADER_INSIGHTS[creativeInsightIdx].icon}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-950 truncate">
+                      {CREATIVE_LOADER_INSIGHTS[creativeInsightIdx].title}
+                    </h4>
+                    <span className="text-[10px] font-mono text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-full font-bold shrink-0">
+                      Phase {creativeInsightIdx + 1}/{CREATIVE_LOADER_INSIGHTS.length}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed min-h-[36px]">
+                    {CREATIVE_LOADER_INSIGHTS[creativeInsightIdx].detail}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Animated Gradient Progress Shimmer */}
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-6">
+              <div 
+                className="h-full bg-gradient-to-r from-[var(--ulipsu-indigo)] via-purple-600 to-[var(--ulipsu-amber)] rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${Math.min(96, Math.max(20, (creativeInsightIdx + 1) * 16.6))}%` }}
+              ></div>
+            </div>
+
             {/* Step Progress Checklist */}
-            <div className="space-y-3.5 text-left max-w-md mx-auto bg-gray-50/80 rounded-2xl p-5 border border-gray-100 mb-6">
+            <div className="space-y-3 text-left max-w-md mx-auto bg-gray-50/80 rounded-2xl p-4 sm:p-5 border border-gray-100 mb-6">
               <div className="flex items-center gap-3">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${generationStep > 1 ? 'bg-emerald-500 text-white' : generationStep === 1 ? 'bg-[var(--ulipsu-indigo)] text-white animate-pulse' : 'bg-gray-200 text-gray-500'}`}>
                   {generationStep > 1 ? '✓' : '1'}
                 </div>
                 <span className={`text-xs ${generationStep >= 1 ? 'text-gray-900 font-semibold' : 'text-gray-400'}`}>
-                  Connecting to Gemini 2.5 Flash AI Engine
+                  AI Engine initialized &amp; establishing context parameters
                 </span>
               </div>
 
@@ -606,14 +699,14 @@ export function AssessmentRoom({
                   {generationStep === 4 ? '✓' : '4'}
                 </div>
                 <span className={`text-xs ${generationStep === 4 ? 'text-gray-900 font-semibold' : 'text-gray-400'}`}>
-                  Initializing test room &amp; calibrated scoring criteria
+                  Calibrating behavioral scoring thresholds &amp; finalizing test room
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span>Synthesizing multi-perspective dilemma pool...</span>
+              <span>DiscoverU AI Engine is synthesizing multi-perspective dilemma pool...</span>
             </div>
           </div>
         ) : (
@@ -635,7 +728,7 @@ export function AssessmentRoom({
                   Personalize Your Assessment
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-xl">
-                  Tell us who you are, what you are currently doing, and which industry you want to work in. Gemini AI will synthesize custom real-world dilemmas tailored directly to your choices.
+                  Tell us who you are, what you are currently doing, and which industry you want to work in. DiscoverU AI Engine will synthesize custom real-world dilemmas tailored directly to your choices.
                 </p>
               </div>
 
@@ -780,7 +873,7 @@ export function AssessmentRoom({
                   </h2>
                 </div>
                 <p className="text-xs text-gray-500 mb-3 ml-8">
-                  Gemini AI will synthesize scenario dilemmas specific to the technical and operational realities of this domain.
+                  DiscoverU AI Engine will synthesize scenario dilemmas specific to the technical and operational realities of this domain.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 ml-8">
                   {INDUSTRY_OPTIONS.map((ind) => {
@@ -916,7 +1009,7 @@ export function AssessmentRoom({
               <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="text-[11px] text-gray-500 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[var(--ulipsu-amber)] shrink-0" />
-                  <span>Powered by Google Gemini 2.5 Flash • Bespoke Dilemmas &amp; STAR Evaluation</span>
+                  <span>Powered by DiscoverU AI Engine • Bespoke Dilemmas &amp; STAR Evaluation</span>
                 </div>
 
                 <button

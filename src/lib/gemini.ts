@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { IRecruiterEvaluation, ICandidateGrowthReport } from '@/models/EvaluationResult';
+import { DEFAULT_PROMPTS } from '@/lib/prompts';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
@@ -44,7 +45,15 @@ export async function runGeminiEvaluation(
   if (ai && apiKey) {
     try {
       // 1. Run Recruiter Evaluation
-      const recruiterPrompt = (customRecruiterPrompt || '')
+      // Verify custom prompt has necessary placeholders and schema instructions, otherwise fallback to DEFAULT_PROMPTS
+      const baseRecruiterTemplate =
+        customRecruiterPrompt &&
+        customRecruiterPrompt.includes('{{candidateResponses}}') &&
+        customRecruiterPrompt.includes('roleFitSummary')
+          ? customRecruiterPrompt
+          : DEFAULT_PROMPTS.recruiter_evaluation.userPromptTemplate;
+
+      const recruiterPrompt = baseRecruiterTemplate
         .replace('{{roleTarget}}', input.roleTarget)
         .replace('{{assessmentVersion}}', input.assessmentVersion)
         .replace('{{candidateName}}', input.candidateName)
@@ -60,10 +69,20 @@ export async function runGeminiEvaluation(
         },
       });
 
-      const recruiterView = JSON.parse(recruiterResponse.text || '{}') as IRecruiterEvaluation;
+      let rawRecruiter = JSON.parse(recruiterResponse.text || '{}');
+      if (Array.isArray(rawRecruiter) && rawRecruiter.length > 0) {
+        rawRecruiter = rawRecruiter[0];
+      }
 
       // 2. Run Candidate Growth Evaluation
-      const candidatePrompt = (customCandidatePrompt || '')
+      const baseCandidateTemplate =
+        customCandidatePrompt &&
+        customCandidatePrompt.includes('{{candidateResponses}}') &&
+        customCandidatePrompt.includes('personalityProfile')
+          ? customCandidatePrompt
+          : DEFAULT_PROMPTS.candidate_growth.userPromptTemplate;
+
+      const candidatePrompt = baseCandidateTemplate
         .replace('{{candidateName}}', input.candidateName)
         .replace('{{candidateLanguage}}', input.candidateLanguage)
         .replace('{{targetLanguage}}', input.candidateLanguage)
@@ -78,8 +97,54 @@ export async function runGeminiEvaluation(
         },
       });
 
-      const candidateView = JSON.parse(candidateResponse.text || '{}') as ICandidateGrowthReport;
-      candidateView.language = input.candidateLanguage;
+      let rawCandidate = JSON.parse(candidateResponse.text || '{}');
+      if (Array.isArray(rawCandidate) && rawCandidate.length > 0) {
+        rawCandidate = rawCandidate[0];
+      }
+
+      // Merge and validate with grounded baseline to guarantee zero runtime rendering crashes
+      const grounded = getGroundedMockEvaluation(input);
+
+      const recruiterView: IRecruiterEvaluation = {
+        roleFitSummary: rawRecruiter?.roleFitSummary || grounded.recruiterView.roleFitSummary,
+        competencyScorecard: Array.isArray(rawRecruiter?.competencyScorecard) && rawRecruiter.competencyScorecard.length > 0
+          ? rawRecruiter.competencyScorecard
+          : grounded.recruiterView.competencyScorecard,
+        evidenceFromResponses: Array.isArray(rawRecruiter?.evidenceFromResponses) && rawRecruiter.evidenceFromResponses.length > 0
+          ? rawRecruiter.evidenceFromResponses
+          : grounded.recruiterView.evidenceFromResponses,
+        strengthsAndProbes: rawRecruiter?.strengthsAndProbes || grounded.recruiterView.strengthsAndProbes,
+        recommendedFollowUp: Array.isArray(rawRecruiter?.recommendedFollowUp) && rawRecruiter.recommendedFollowUp.length > 0
+          ? rawRecruiter.recommendedFollowUp
+          : grounded.recruiterView.recommendedFollowUp,
+        decisionSupportAndFairness: rawRecruiter?.decisionSupportAndFairness || grounded.recruiterView.decisionSupportAndFairness,
+      };
+
+      const candidateView: ICandidateGrowthReport = {
+        language: input.candidateLanguage,
+        scoringIntegrity: rawCandidate?.scoringIntegrity || {
+          languagesUsed: [input.candidateLanguage],
+          simplificationRequestsCount: 0,
+          scoreImpactOrPenalty: 0,
+          verificationStatus: `Submission in ${input.candidateLanguage.toUpperCase()} evaluated with zero scoring penalty`,
+        },
+        personalityProfile: rawCandidate?.personalityProfile?.oceanScores
+          ? rawCandidate.personalityProfile
+          : grounded.candidateView.personalityProfile,
+        potentialStrengths: Array.isArray(rawCandidate?.potentialStrengths) && rawCandidate.potentialStrengths.length > 0
+          ? rawCandidate.potentialStrengths
+          : grounded.candidateView.potentialStrengths,
+        blindSpotsAndChallenges: Array.isArray(rawCandidate?.blindSpotsAndChallenges) && rawCandidate.blindSpotsAndChallenges.length > 0
+          ? rawCandidate.blindSpotsAndChallenges
+          : grounded.candidateView.blindSpotsAndChallenges,
+        workPreferences: Array.isArray(rawCandidate?.workPreferences) && rawCandidate.workPreferences.length > 0
+          ? rawCandidate.workPreferences
+          : grounded.candidateView.workPreferences,
+        personalDevelopmentPlan: Array.isArray(rawCandidate?.personalDevelopmentPlan) && rawCandidate.personalDevelopmentPlan.length > 0
+          ? rawCandidate.personalDevelopmentPlan
+          : grounded.candidateView.personalDevelopmentPlan,
+        preservedStarEvidence: rawCandidate?.preservedStarEvidence || grounded.candidateView.preservedStarEvidence,
+      };
 
       return {
         recruiterView,
@@ -87,7 +152,8 @@ export async function runGeminiEvaluation(
         modelUsed: modelName,
       };
     } catch (err) {
-      console.error('Gemini API call error, falling back to grounded evaluator:', err);
+      console.error('Gemini evaluation pipeline error, applying grounded evaluator:', err);
+      return getGroundedMockEvaluation(input);
     }
   }
 

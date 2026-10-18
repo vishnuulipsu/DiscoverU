@@ -956,160 +956,6 @@ export function buildProfessionalQuestions(
     },
   ];
 
-  // -------------------------------------------------------------
-  // STAR SUBJECTIVE (4 Questions: One Scenario with 4 Subjective Phases)
-  // -------------------------------------------------------------
-  const baseScenario =
-    scenarioContext ||
-    `During peak operational hours in ${targetIndustry || 'Enterprise Systems'}, your core service encounters an unprecedented failure mode. A critical third-party dependency begins throttling 45% of incoming transactions with subtle intermittent data inconsistencies. Two executive stakeholders demand divergent solutions: Product insists on a temporary bypass to protect business numbers for the quarterly close, while Security and Compliance mandate shutting down the sync queue to prevent regulatory non-compliance. As the responsible professional, you must lead the resolution under high pressure with incomplete information.`;
-
-  const starQuestions: IDualPaneQuestion[] = [
-    {
-      questionId: 'star_s',
-      competencyKey: 'star_situation',
-      competencyName: 'STAR: Situation Analysis',
-      category: 'star',
-      subCategory: 'Situation (Context & Dilemma)',
-      questionType: 'subjective_star',
-      idealEvidenceCriteria: 'Accurately articulates the systemic context, stakeholder tensions, root dilemma, and risks at stake.',
-      en: {
-        title: 'STAR Phase 1: Situation Diagnosis',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'Describe your diagnosis of the Situation: What is the core conflict, what constraints or high-stakes trade-offs are present, and what makes this scenario particularly challenging for the organization?',
-        writtenPlaceholder:
-          'Break down the situational context, stakeholder conflict, and operational boundaries...',
-      },
-      hi: {
-        title: 'STAR चरण 1: परिस्थिति का विश्लेषण (Situation)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'परिस्थिति का विश्लेषण करें: इस स्थिति में मूल द्वंद्व और सीमाएं क्या हैं? हितधारकों के बीच क्या मतभेद हैं और संगठन के लिए सबसे बड़ा जोखिम क्या है?',
-        writtenPlaceholder:
-          'यहाँ परिस्थिति, मुख्य चुनौतियाँ और जोखिम का विवरण लिखें...',
-      },
-      kn: {
-        title: 'STAR ಹಂತ 1: ಸನ್ನಿವೇಶದ ವಿಶ್ಲೇಷಣೆ (Situation)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'ಸನ್ನಿವೇಶವನ್ನು ವಿಶ್ಲೇಷಿಸಿ: ಈ ಸನ್ನಿವೇಶದಲ್ಲಿರುವ ಮುಖ್ಯ ಸಂಘರ್ಷ ಮತ್ತು ಅಡೆತಡೆಗಳೇನು? ಸಂಸ್ಥೆಗೆ ಎದುರಾಗಿರುವ ಪ್ರಮುಖ ಅಪಾಯ ಯಾವುದು?',
-        writtenPlaceholder:
-          'ಸನ್ನಿವೇಶ, ಹಿನ್ನೆಲೆ ಮತ್ತು ಸವಾಲುಗಳನ್ನು ಇಲ್ಲಿ ವಿವರಿಸಿ...',
-      },
-    },
-    {
-      questionId: 'star_t',
-      competencyKey: 'star_task',
-      competencyName: 'STAR: Task & Responsibility',
-      category: 'star',
-      subCategory: 'Task (Ownership & Standard)',
-      questionType: 'subjective_star',
-      idealEvidenceCriteria: 'Defines individual ownership, specific success metrics, and non-negotiable boundaries.',
-      en: {
-        title: 'STAR Phase 2: Task & Ownership Definition',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'Define your Task and Personal Responsibility: What was your specific mission in this situation? What objective or non-negotiable boundary (e.g. data integrity vs business continuity) did you personally own and commit to protecting?',
-        writtenPlaceholder:
-          'Explain your exact responsibility, key objectives, and the critical standard you decided to uphold...',
-      },
-      hi: {
-        title: 'STAR चरण 2: जिम्मेदारी और लक्ष्य (Task)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'अपनी जिम्मेदारी स्पष्ट करें: इस परिस्थिति में आपकी व्यक्तिगत भूमिका और लक्ष्य क्या था? आप किस मानक (डेटा सुरक्षा बनाम व्यापार निरंतरता) की रक्षा करने के लिए प्रतिबद्ध थे?',
-        writtenPlaceholder:
-          'अपनी व्यक्तिगत जिम्मेदारी और प्राथमिकता का विवरण दें...',
-      },
-      kn: {
-        title: 'STAR ಹಂತ 2: ಜವಾಬ್ದಾರಿ ಮತ್ತು ಗುರಿ (Task)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'ನಿಮ್ಮ ಜವಾಬ್ದಾರಿಯನ್ನು ವಿವರಿಸಿ: ಈ ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಪಾತ್ರ ಮತ್ತು ಗುರಿ ಏನಾಗಿತ್ತು? ನೀವು ಕಾಪಾಡಬೇಕಾದ ಪ್ರಮುಖ ಮಾನದಂಡ ಯಾವುದು?',
-        writtenPlaceholder:
-          'ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜವಾಬ್ದಾರಿ ಮತ್ತು ಗುರಿಯನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ...',
-      },
-    },
-    {
-      questionId: 'star_a',
-      competencyKey: 'star_action',
-      competencyName: 'STAR: Action Execution',
-      category: 'star',
-      subCategory: 'Action (Execution & Mitigation)',
-      questionType: 'subjective_star',
-      idealEvidenceCriteria: 'Details concrete sequence of tactical decisions, stakeholder negotiation, and execution mitigations.',
-      en: {
-        title: 'STAR Phase 3: Action Execution & Strategy',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'Detail the Action you personally executed: What specific technical or operational steps did you take? How did you align the opposing stakeholders (Product vs Compliance), and how did you manage risk during execution?',
-        writtenPlaceholder:
-          'Detail your concrete steps, decision logic, stakeholder communication, and mitigations applied...',
-      },
-      hi: {
-        title: 'STAR चरण 3: उठाई गई कार्रवाई (Action)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'उठाई गई कार्रवाई का विवरण दें: आपने कौन से ठोस कदम उठाए? आपने दोनों पक्षों (प्रोडक्ट और कंप्लायंस) के बीच कैसे तालमेल बैठाया और जोखिम को कैसे नियंत्रित किया?',
-        writtenPlaceholder:
-          'यहाँ उठाए गए कदम, बातचीत की रणनीति और तकनीकी फैसलों का विवरण लिखें...',
-      },
-      kn: {
-        title: 'STAR ಹಂತ 3: ತೆಗೆದುಕೊಂಡ ಕ್ರಮಗಳು (Action)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'ತೆಗೆದುಕೊಂಡ ಕ್ರಮಗಳನ್ನು ವಿವರಿಸಿ: ನೀವು ಕಾರ್ಯಗತಗೊಳಿಸಿದ ನಿರ್ದಿಷ್ಟ ಹೆಜ್ಜೆಗಳೇನು? ವಿಭಿನ್ನ ನಿಲುವು ಹೊಂದಿರುವ ನಾಯಕರನ್ನು ಹೇಗೆ ಒಪ್ಪಿಸಿದಿರಿ ಮತ್ತು ಅಪಾಯವನ್ನು ಹೇಗೆ ನಿರ್ವಹಿಸಿದಿರಿ?',
-        writtenPlaceholder:
-          'ನೀವು ತೆಗೆದುಕೊಂಡ ಕ್ರಮಗಳು ಮತ್ತು ನಿರ್ಧಾರಗಳನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ...',
-      },
-    },
-    {
-      questionId: 'star_r',
-      competencyKey: 'star_result',
-      competencyName: 'STAR: Result & Retrospective',
-      category: 'star',
-      subCategory: 'Result (Outcome & Learning)',
-      questionType: 'subjective_star',
-      idealEvidenceCriteria: 'Quantifies tangible business outcomes and outlines lasting systemic retrospectives to prevent recurrence.',
-      en: {
-        title: 'STAR Phase 4: Result & Long-Term Impact',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'Summarize the Result and Lasting Learnings: What was the tangible outcome for the business and system? What preventative mechanisms (e.g. automated safeguards, SLA revisions) did you establish to guarantee this never happens again?',
-        writtenPlaceholder:
-          'Describe the final outcome, impact metrics, and systemic improvements implemented post-incident...',
-      },
-      hi: {
-        title: 'STAR चरण 4: परिणाम और सीख (Result)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'परिणाम और दीर्घकालिक सीख: अंतिम परिणाम क्या रहा? भविष्य में ऐसी घटना दोबारा न हो, इसके लिए आपने कौन से स्थायी उपाय या सुधार लागू किए?',
-        writtenPlaceholder:
-          'परिणाम, व्यावसायिक प्रभाव और भविष्य के सुधारों का विवरण दें...',
-      },
-      kn: {
-        title: 'STAR ಹಂತ 4: ಫಲಿತಾಂಶ ಮತ್ತು ಕಲಿಕೆ (Result)',
-        scenario: baseScenario,
-        mcqOptions: [],
-        writtenPrompt:
-          'ಅಂತಿಮ ಫಲಿತಾಂಶ ಮತ್ತು ಕಲಿಕೆಯನ್ನು ವಿವರಿಸಿ: ಸಂಸ್ಥೆಯ ಮೇಲೆ ಆದ ಪರಿಣಾಮವೇನು? ಇಂತಹ ಸಮಸ್ಯೆ ಮರುಕಳಿಸದಂತೆ ನೀವು ಜಾರಿಗೆ ತಂದ ಶಾಶ್ವತ ಸುಧಾರಣೆಗಳೇನು?',
-        writtenPlaceholder:
-          'ಅಂತಿಮ ಫಲಿತಾಂಶ, ಯಶಸ್ಸು ಮತ್ತು ದೀರ್ಘಕಾಲೀನ ಸುಧಾರಣೆಗಳನ್ನು ಇಲ್ಲಿ ದಾಖಲಿಸಿ...',
-      },
-    },
-  ];
-
   // Enrich OCEAN questions with dimension, mandatory/optional status, and localized behavioral reasoning prompts
   const enrichedOceanQuestions: IDualPaneQuestion[] = oceanQuestions.map((q) => {
     const dim = q.questionId.startsWith('ocean_o') ? 'O'
@@ -1122,25 +968,26 @@ export function buildProfessionalQuestions(
     const isRationaleRequired = q.questionId.endsWith('6');
     const isOptionalExplanation = !isRationaleRequired;
 
+    // Neutral prompts without leaking internal dimension labels (OCEAN) or STAR frameworks
     const enPrompt = isRationaleRequired
-      ? `Mandatory Behavioral Reasoning (STAR): Think about your rating for "${q.en.title}". Describe a real experience that explains your response. Include what happened (Situation), what you needed to do (Task), what you personally did (Action), and what happened in the end (Result).`
-      : `Optional Context: Think about your rating for "${q.en.title}". You may optionally describe a real-world experience or reason that explains why you chose this rating.`;
+      ? 'Reflect on your rating for this statement. Share a concrete real-world experience that demonstrates why you chose this response—what was the challenge, how did you respond, and what was the outcome?'
+      : 'Share a brief real-world example or context explaining why you chose this rating (optional).';
 
     const enPlaceholder = isRationaleRequired
-      ? 'Required: Detail what happened, your goal, what you personally did, and the outcome (at least 15 characters)...'
+      ? 'Required: Detail what happened, the action you took, and the outcome (at least 15 characters)...'
       : 'Optional: Share a brief real-life example or reason explaining your rating...';
 
     const hiPrompt = isRationaleRequired
-      ? `अनिवार्य व्यावहारिक अनुभव (STAR): "${q.hi.title}" पर अपनी रेटिंग पर विचार करें और एक वास्तविक अनुभव साझा करें (स्थिति, आपकी जिम्मेदारी, आपने क्या किया और क्या परिणाम हुआ)।`
-      : `वैकल्पिक संदर्भ: "${q.hi.title}" पर अपनी रेटिंग को स्पष्ट करने के लिए यदि चाहें तो एक संक्षिप्त वास्तविक उदाहरण या कारण साझा करें।`;
+      ? 'इस कथन पर अपनी रेटिंग पर विचार करें और कार्यस्थल का एक वास्तविक अनुभव साझा करें—चुनौती क्या थी, आपने कैसे संभाला, और उसका क्या परिणाम रहा?'
+      : 'अपनी रेटिंग को स्पष्ट करने के लिए यदि चाहें तो कार्यस्थल का कोई संक्षिप्त वास्तविक उदाहरण या संदर्भ साझा करें (ऐच्छिक)।';
 
     const hiPlaceholder = isRationaleRequired
-      ? 'अनिवार्य: अपने वास्तविक अनुभव और परिणाम का विवरण यहाँ लिखें (कम से कम 15 अक्षर)...'
+      ? 'अनिवार्य: अपने वास्तविक अनुभव, उठाए गए कदम और परिणाम का विवरण यहाँ लिखें (कम से कम 15 अक्षर)...'
       : 'वैकल्पिक: अपनी रेटिंग के पीछे का संक्षिप्त कारण या उदाहरण यहाँ लिखें...';
 
     const knPrompt = isRationaleRequired
-      ? `ಕಡ್ಡಾಯ ನೈಜ ಅನುಭವ ವಿವರಣೆ (STAR): "${q.kn.title}" ಆಯ್ಕೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ನಿಮ್ಮ ನೈಜ ಅನುಭವವನ್ನು ವಿವರಿಸಿ (ಸನ್ನಿವೇಶ, ನಿಮ್ಮ ಹೊಣೆಗಾರಿಕೆ, ನೀವು ತೆಗೆದುಕೊಂಡ ಕ್ರಮ ಮತ್ತು ಫಲಿತಾಂಶ).`
-      : `ಐಚ್ಛಿಕ ವಿವರಣೆ: "${q.kn.title}" ಆಯ್ಕೆಯನ್ನು ಬೆಂಬಲಿಸಲು ನೀವು ಸಂಕ್ಷಿಪ್ತ ನೈಜ ಉದಾಹರಣೆ ಅಥವಾ ವಿವರಣೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಬಹುದು.`;
+      ? 'ಈ ಹೇಳಿಕೆಗೆ ನೀಡಿದ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸಲು ನಿಮ್ಮ ಕೆಲಸದ ಸ್ಥಳದ ನೈಜ ಅನುಭವವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ—ಸವಾಲು ಏನಾಗಿತ್ತು, ನೀವು ಹೇಗೆ ಪ್ರತಿಕ್ರಿಯಿಸಿದಿರಿ ಮತ್ತು ಫಲಿತಾಂಶವೇನು?'
+      : 'ನಿಮ್ಮ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸಲು ಕೆಲಸದ ಸ್ಥಳದ ಯಾವುದೇ ಸಂಕ್ಷಿಪ್ತ ನೈಜ ಉದಾಹರಣೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ (ಐಚ್ಛಿಕ).';
 
     const knPlaceholder = isRationaleRequired
       ? 'ಕಡ್ಡಾಯ: ಸನ್ನಿವೇಶ, ನಿಮ್ಮ ಕಾರ್ಯ ಮತ್ತು ಅಂತಿಮ ಫಲಿತಾಂಶವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ (ಕನಿಷ್ಠ 15 ಅಕ್ಷರಗಳು)...'
@@ -1153,23 +1000,24 @@ export function buildProfessionalQuestions(
       isOptionalExplanation,
       en: {
         ...q.en,
-        writtenPrompt: q.en.writtenPrompt || enPrompt,
-        writtenPlaceholder: q.en.writtenPlaceholder || enPlaceholder,
+        writtenPrompt: enPrompt,
+        writtenPlaceholder: enPlaceholder,
       },
       hi: {
         ...q.hi,
-        writtenPrompt: q.hi.writtenPrompt || hiPrompt,
-        writtenPlaceholder: q.hi.writtenPlaceholder || hiPlaceholder,
+        writtenPrompt: hiPrompt,
+        writtenPlaceholder: hiPlaceholder,
       },
       kn: {
         ...q.kn,
-        writtenPrompt: q.kn.writtenPrompt || knPrompt,
-        writtenPlaceholder: q.kn.writtenPlaceholder || knPlaceholder,
+        writtenPrompt: knPrompt,
+        writtenPlaceholder: knPlaceholder,
       },
     };
   });
 
-  return [...enrichedOceanQuestions, ...starQuestions];
+  // Strictly 30 questions for Working Professionals (STAR subjective case study removed)
+  return enrichedOceanQuestions;
 }
 
 // ============================================================================

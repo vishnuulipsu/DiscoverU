@@ -116,7 +116,7 @@ export function Navbar({ currentLanguage = 'en', onLanguageChange, theme = 'ligh
         </nav>
 
         {/* Language Selector Dropdown */}
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 bg-gray-50 border border-[var(--ulipsu-border)] rounded-lg px-2.5 py-1.5 text-xs">
             <Globe className="w-3.5 h-3.5 text-[var(--ulipsu-indigo)]" />
             <select
@@ -129,7 +129,7 @@ export function Navbar({ currentLanguage = 'en', onLanguageChange, theme = 'ligh
               <option value="kn">ಕನ್ನಡ (Kannada)</option>
             </select>
           </div>
-        </div>
+        </div> */}
       </div>
     </header>
   );

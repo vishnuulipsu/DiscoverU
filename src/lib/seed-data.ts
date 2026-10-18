@@ -223,7 +223,7 @@ export const SAMPLE_QUESTIONS: IDualPaneQuestion[] = [
 export const NANDINI_GROWTH_REPORT: ICandidateGrowthReport = {
   language: 'en',
   candidateId: 'cand_1792239718581',
-  totalQuestions: 34,
+  totalQuestions: 30,
   scoringIntegrity: {
     languagesUsed: ['en'],
     simplificationRequestsCount: 8,
@@ -449,7 +449,7 @@ export const NANDINI_GROWTH_REPORT: ICandidateGrowthReport = {
 export const NANDINI_GROWTH_REPORT_HI: ICandidateGrowthReport = {
   language: 'hi',
   candidateId: 'cand_1792239718581',
-  totalQuestions: 34,
+  totalQuestions: 30,
   scoringIntegrity: {
     languagesUsed: ['hi', 'en'],
     simplificationRequestsCount: 8,
@@ -675,7 +675,7 @@ export const NANDINI_GROWTH_REPORT_HI: ICandidateGrowthReport = {
 export const NANDINI_GROWTH_REPORT_KN: ICandidateGrowthReport = {
   language: 'kn',
   candidateId: 'cand_1792239718581',
-  totalQuestions: 34,
+  totalQuestions: 30,
   scoringIntegrity: {
     languagesUsed: ['kn', 'en'],
     simplificationRequestsCount: 8,
@@ -908,9 +908,9 @@ export const NANDINI_RECRUITER_EVALUATION: IRecruiterEvaluation = {
       'Adaptability & Continuous Learning',
       'Execution & Pacing Under Pressure',
     ],
-    assessmentVersion: 'v1.0.0 (34 Scored Items)',
+    assessmentVersion: 'v1.0.0 (30 Scored Items)',
     overallEvidenceSummary:
-      'Nandini demonstrates high technical ownership, methodical problem decomposition, and disciplined execution. Candidate successfully completed 34 assessment items across core competencies. 8 language simplification requests were utilized without any penalty to integrity. Candidate exhibits strong collaborative resilience and rapid recovery from feedback, positioning her as an exceptional technical leader.',
+      'Nandini demonstrates high technical ownership, methodical problem decomposition, and disciplined execution. Candidate successfully completed 30 assessment items across core competencies. 8 language simplification requests were utilized without any penalty to integrity. Candidate exhibits strong collaborative resilience and rapid recovery from feedback, positioning her as an exceptional technical leader.',
   },
   competencyScorecard: [
     {

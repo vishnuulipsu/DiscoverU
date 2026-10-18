@@ -17,7 +17,7 @@ interface CandidatePageProps {
 }
 
 async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
-  const chosenLang = (requestedLang === 'hi' || requestedLang === 'kn' ? requestedLang : 'en') as 'en' | 'hi' | 'kn';
+  const explicitLang = (requestedLang === 'hi' || requestedLang === 'kn' || requestedLang === 'en') ? requestedLang as 'en' | 'hi' | 'kn' : undefined;
 
   // Helper to retrieve localized Nandini report
   const getNandiniReportForLang = (l: 'en' | 'hi' | 'kn') => {
@@ -31,8 +31,11 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
       await connectToDatabase();
       const doc = await EvaluationResult.findById(evalId).lean();
       if (doc && doc.candidateView) {
-        const isNandini = doc.candidateName?.toLowerCase().includes('nandini') || doc.candidateEmail?.includes('nandini');
         const rawCandidate = (doc.candidateView as unknown) as Record<string, unknown> | undefined;
+        const storedLang = ((doc as unknown as Record<string, unknown>).candidateLanguage as string) || (rawCandidate?.language as string);
+        const chosenLang: 'en' | 'hi' | 'kn' = explicitLang || (storedLang === 'hi' || storedLang === 'kn' ? storedLang : 'en');
+
+        const isNandini = doc.candidateName?.toLowerCase().includes('nandini') || doc.candidateEmail?.includes('nandini');
         const isCandidateValid = rawCandidate?.personalityProfile && Array.isArray(rawCandidate?.potentialStrengths) && rawCandidate.potentialStrengths.length > 0;
         const report = isNandini
           ? getNandiniReportForLang(chosenLang)
@@ -71,8 +74,11 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
     const nandiniDoc = await EvaluationResult.findOne({ candidateName: /Nandini/i }).lean();
     const doc = nandiniDoc || (await EvaluationResult.findOne().sort({ createdAt: -1 }).lean());
     if (doc && doc.candidateView) {
-      const isNandini = doc.candidateName?.toLowerCase().includes('nandini') || doc.candidateEmail?.includes('nandini');
       const rawCandidate = (doc.candidateView as unknown) as Record<string, unknown> | undefined;
+      const storedLang = ((doc as unknown as Record<string, unknown>).candidateLanguage as string) || (rawCandidate?.language as string);
+      const chosenLang: 'en' | 'hi' | 'kn' = explicitLang || (storedLang === 'hi' || storedLang === 'kn' ? storedLang : 'en');
+
+      const isNandini = doc.candidateName?.toLowerCase().includes('nandini') || doc.candidateEmail?.includes('nandini');
       const isCandidateValid = rawCandidate?.personalityProfile && Array.isArray(rawCandidate?.potentialStrengths) && rawCandidate.potentialStrengths.length > 0;
       const report = isNandini
         ? getNandiniReportForLang(chosenLang)
@@ -104,10 +110,11 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
     // Fall back to grounded mock demo
   }
 
+  const defaultLang: 'en' | 'hi' | 'kn' = explicitLang || 'en';
   return {
-    growthReport: getNandiniReportForLang(chosenLang),
+    growthReport: getNandiniReportForLang(defaultLang),
     candidateName: 'Nandini Perumal',
-    candidateLanguage: chosenLang,
+    candidateLanguage: defaultLang,
     isLiveDb: false,
     evalId: undefined,
     targetRole: 'Product Management',

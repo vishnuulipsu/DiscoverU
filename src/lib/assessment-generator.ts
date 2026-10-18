@@ -9,7 +9,7 @@ export interface GenerateAssessmentParams {
   currentRole: string; // What candidate is currently doing
   targetIndustry: string; // Industry they want to work in
   testTrack?: 'full' | 'crisis' | 'cross_functional' | 'governance'; // Which test they want to take
-  assessmentTrack?: 'professional' | 'student'; // 'professional' = OCEAN (30) + STAR (4); 'student' = MBTI (12) + HOLLAND (4)
+  assessmentTrack?: 'professional' | 'student'; // 'professional' = 30 Workplace Behavioral Statements (5 mandatory experience justifications); 'student' = MBTI (12) + HOLLAND (4)
   language?: 'en' | 'hi' | 'kn';
 }
 
@@ -99,18 +99,43 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
     };
   }
 
-  // 2. Working Professional Track: OCEAN Big Five (30) + STAR Subjective (4)
+  // 2. Working Professional Track: Workplace Behavioral Dimensions (30) with 5 mandatory experience justifications
   if (assessmentTrack === 'professional') {
     const professionalQuestions = buildProfessionalQuestions(currentRole, targetIndustry);
     return {
-      title: `Professional Leadership & Behavioral Assessment (OCEAN + STAR) - ${ind.name}`,
+      title: `Professional Leadership & Behavioral Assessment - ${ind.name}`,
       roleTarget: `${currentRole || 'Software Professional'} (${ind.name})`,
-      description: `30 Likert-scale Big Five (OCEAN) behavioral questions across 5 dimensions and 4 STAR subjective situational responses evaluating real-world leadership.`,
+      description: `30 Workplace behavioral questions across 5 core dimensions with 5 mandatory experience justifications evaluating real-world leadership.`,
       questions: professionalQuestions,
     };
   }
 
   const roleTitle = `${currentRole || 'Software Professional'} (${ind.name})`;
+
+function getLocalizedDilemma(
+  ind: (typeof INDUSTRY_CONTEXTS)[string],
+  dilemmaType: 'crisis' | 'scope' | 'accountability' | 'compliance' | 'prioritisation',
+  lang: 'en' | 'hi' | 'kn'
+): string {
+  if (lang === 'en') {
+    return ind[`${dilemmaType}Dilemma` as keyof typeof ind] || '';
+  }
+  const hiDilemmas: Record<string, string> = {
+    crisis: `प्रमुख क्लाइंट या सिस्टम संचालन से ठीक पहले, ${ind.name} वातावरण में गंभीर समस्या उत्पन्न होती है। तत्काल एक त्वरित अस्थायी समाधान उपलब्ध है जो कुछ समय के लिए सिस्टम को चला सकता है लेकिन डेटा जोखिम पैदा करता है, जबकि मूल कारण समाधान में समय लगेगा।`,
+    scope: `उत्पाद रिलीज से कुछ दिन पहले, वरिष्ठ प्रबंधन एक नई अनपरीक्षित सुविधा जोड़ने की मांग करता है जिससे ${ind.name} के मुख्य सिस्टम में 80% तकनीकी जोखिम और विफलता की संभावना है।`,
+    accountability: `कोड और सिस्टम समीक्षा के दौरान आपके द्वारा अनुमोदित एक तकनीकी चूक लाइव प्रोडक्शन में चली गई और कई कॉर्पोरेट क्लाइंट्स के महत्वपूर्ण संचालन को बाधित कर दिया।`,
+    compliance: `सक्रिय प्रोजेक्ट स्प्रिंट के बीच, नियामक प्राधिकरण या डेटा गोपनीयता नियमों का एक अचानक आदेश आता है जिससे ${ind.name} की संपूर्ण डेटा आर्किटेक्चर को तत्काल बदलना अनिवार्य हो जाता है।`,
+    prioritisation: `आपकी टीम के सामने एक साथ दो बड़ी चुनौतियाँ हैं: 500,000 खातों को सुरक्षित करने वाला एक महत्वपूर्ण सुरक्षा पैच और समानांतर 4 अत्यावश्यक एस्केलेशन टिकट।`,
+  };
+  const knDilemmas: Record<string, string> = {
+    crisis: `ಮುಖ್ಯ ಗ್ರಾಹಕರ ಕಾರ್ಯಾಚರಣೆಗೆ ಮುನ್ನ, ${ind.name} ವ್ಯವಸ್ಥೆಯಲ್ಲಿ ಗಂಭೀರ ವಿಳಂಬ ಮತ್ತು ಸಮಸ್ಯೆ ಎದುರಾಗುತ್ತದೆ. ಸಿಸ್ಟಮ್ ಅನ್ನು ತಾತ್ಕಾಲಿಕವಾಗಿ ಚಾಲನೆ ಮಾಡಲು ತ್ವರಿತ ಪ್ಯಾಚ್ ಲಭ್ಯವಿದೆ ಆದರೆ ದೀರ್ಘಾವಧಿಯ ಡೇಟಾ ಅಪಾಯವಿದೆ, ಮತ್ತೊಂದೆಡೆ ಮೂಲ ಕಾರಣ ಪರಿಹರಿಸಲು ಸಮಯ ಬೇಕು.`,
+    scope: `ಉತ್ಪನ್ನ ಬಿಡುಗಡೆಗೆ ಕೆಲವೇ ದಿನಗಳಿರುವಾಗ, ಹಿರಿಯ ನಾಯಕತ್ವವು ಹೊಸ ಅಸಮರ್ಪಕ ವೈಶಿಷ್ಟ್ಯವನ್ನು ಸೇರಿಸಲು ಒತ್ತಾಯಿಸುತ್ತದೆ, ಇದರಿಂದ ${ind.name} ನ ಮುಖ್ಯ ಸಿಸ್ಟಮ್‌ನಲ್ಲಿ 80% ತಾಂತ್ರಿಕ ಅಪಾಯದ ಸಾಧ್ಯತೆಯಿದೆ.`,
+    accountability: `ಪರಿಶೀಲನೆಯ ಸಮಯದಲ್ಲಿ ನೀವು ಅನುಮೋದಿಸಿದ ತಾಂತ್ರಿಕ ದೋಷವೊಂದು ಲೈವ್ ಸಿಸ್ಟಮ್‌ಗೆ ಹೋಗಿ ಹಲವಾರು ಕಾರ್ಪೊರೇಟ್ ಖಾತೆಗಳ ದೈನಂದಿನ ವಹಿವಾಟುಗಳಿಗೆ ಅಡಚಣೆ ಉಂಟುಮಾಡಿದೆ.`,
+    compliance: `ಪ್ರಾಜೆಕ್ಟ್‌ನ ನಿರ್ಣಾಯಕ ಹಂತದಲ್ಲಿ, ನಿಯಂತ್ರಕ ಪ್ರಾಧಿಕಾರದ ಹೊಸ ನಿರ್ದೇಶನ ಬಂದಿದ್ದು, ${ind.name} ನ ಡೇಟಾ ರಚನೆಯನ್ನು ತಕ್ಷಣವೇ ಮರುವಿನ್ಯಾಸಗೊಳಿಸುವುದು ಕಡ್ಡಾಯವಾಗಿದೆ.`,
+    prioritisation: `ನಿಮ್ಮ ತಂಡಕ್ಕೆ ಏಕಕಾಲದಲ್ಲಿ 500,000 ಖಾತೆಗಳನ್ನು ರಕ್ಷಿಸುವ ಪ್ರಮುಖ ಸುರಕ್ಷತಾ ಅಪ್‌ಡೇಟ್ ಪೂರ್ಣಗೊಳಿಸಬೇಕಿದೆ ಮತ್ತು 4 ತುರ್ತು ಕ್ಲೈಂಟ್ ದೂರುಗಳನ್ನು ಪರಿಹರಿಸಬೇಕಾಗಿದೆ.`,
+  };
+  return (lang === 'hi' ? hiDilemmas[dilemmaType] : knDilemmas[dilemmaType]) || ind[`${dilemmaType}Dilemma` as keyof typeof ind] || '';
+}
 
   // Build tailored questions
   const qList: IDualPaneQuestion[] = [
@@ -133,7 +158,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       hi: {
         title: `दुविधा 1: ${ind.name} में संकट प्रबंधन`,
-        scenario: ind.crisisDilemma,
+        scenario: getLocalizedDilemma(ind, 'crisis', 'hi'),
         mcqOptions: [
           { id: 'A', text: 'तत्काल काम चलाने के लिए अस्थायी पैच लगाएं, भले ही बाद में जोखिम हो।', points: 2, rationaleCategory: 'तात्कालिक पैच' },
           { id: 'B', text: 'रीड-रेप्लिका रीडायरेक्ट के साथ मूल समस्या का समाधान करें और हितधारकों को स्थिति स्पष्ट करें।', points: 5, rationaleCategory: 'मूल कारण समाधान एवं पारदर्शिता' },
@@ -145,7 +170,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       kn: {
         title: `ಸನ್ನಿವೇಶ 1: ${ind.name} ಸಿಸ್ಟಮ್ ಬಿಕ್ಕಟ್ಟು`,
-        scenario: ind.crisisDilemma,
+        scenario: getLocalizedDilemma(ind, 'crisis', 'kn'),
         mcqOptions: [
           { id: 'A', text: 'ಡೆಮೊ ಸುಲಭವಾಗಿ ಸಾಗಲು ತಕ್ಷಣವೇ ತಾತ್ಕಾಲಿಕ ಮರುಪ್ರಾರಂಭ ಪರಿಹಾರವನ್ನು ಅನ್ವಯಿಸಿ.', points: 2, rationaleCategory: 'ತಾತ್ಕಾಲಿಕ ಪರಿಹಾರ' },
           { id: 'B', text: 'ಮೂಲ ಸಮಸ್ಯೆಯನ್ನು ಗುರುತಿಸಿ ಪರ್ಯಾಯ ಮಾರ್ಗ ಅನ್ವಯಿಸಿ, ಮತ್ತು ತಂಡಕ್ಕೆ ಮುಂಚಿತವಾಗಿ ಸ್ಪಷ್ಟಪಡಿಸಿ.', points: 5, rationaleCategory: 'ಮೂಲ ಕಾರಣ ಪರಿಹಾರ ಮತ್ತು ಪಾರದರ್ಶಕತೆ' },
@@ -175,7 +200,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       hi: {
         title: `दुविधा 2: हितधारकों के साथ प्राथमिकताओं का टकराव`,
-        scenario: ind.scopeDilemma,
+        scenario: getLocalizedDilemma(ind, 'scope', 'hi'),
         mcqOptions: [
           { id: 'A', text: 'अनुरोध तुरंत स्वीकार करें और टीम से वीकेंड पर अतिरिक्त काम करवाएं।', points: 2, rationaleCategory: 'अंधानुकरण' },
           { id: 'B', text: 'ईमेल पर सीधे मना कर दें और डिलीवरी नियमों का हवाला दें।', points: 2, rationaleCategory: 'नकारात्मक टकराव' },
@@ -187,7 +212,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       kn: {
         title: `ಸನ್ನಿವೇಶ 2: ಪಾಲುದಾರರೊಂದಿಗೆ ಹೊಂದಾಣಿಕೆ`,
-        scenario: ind.scopeDilemma,
+        scenario: getLocalizedDilemma(ind, 'scope', 'kn'),
         mcqOptions: [
           { id: 'A', text: 'ತಕ್ಷಣ ಒಪ್ಪಿಕೊಂಡು ತಂಡಕ್ಕೆ ರಜಾದಿನಗಳಲ್ಲಿ ಕೆಲಸ ಮಾಡಲು ಆದೇಶಿಸಿ.', points: 2, rationaleCategory: 'ಅಂಧಾನುಕರಣೆ' },
           { id: 'B', text: 'ಇಮೇಲ್ ಮೂಲಕ ನೇರವಾಗಿ ನಿರಾಕರಿಸಿ ನಿಯಮಗಳನ್ನು ಉಲ್ಲೇಖಿಸಿ.', points: 2, rationaleCategory: 'ವಿವಾದಾತ್ಮಕ ನಿರಾಕರಣೆ' },
@@ -217,7 +242,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       hi: {
         title: 'दुविधा 3: लाइव सिस्टम में चूक और व्यक्तिगत उत्तरदायित्व',
-        scenario: ind.accountabilityDilemma,
+        scenario: getLocalizedDilemma(ind, 'accountability', 'hi'),
         mcqOptions: [
           { id: 'A', text: 'समीक्षा में हुई चूक की पूरी जिम्मेदारी लें, तत्काल हॉटफिक्स लगाएं और भविष्य के लिए ऑटोमेटेड टेस्ट लिखें।', points: 5, rationaleCategory: 'पूर्ण उत्तरदायित्व एवं सुधार' },
           { id: 'B', text: 'दोष कोड लिखने वाले और ऑटोमेशन टूल पर मढ़ें।', points: 1, rationaleCategory: 'दोषारोपण' },
@@ -229,7 +254,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       kn: {
         title: 'ಸನ್ನಿವೇಶ 3: ಲೈವ್ ಸಿಸ್ಟಮ್ ದೋಷ ಮತ್ತು ವೈಯಕ್ತಿಕ ಹೊಣೆಗಾರಿಕೆ',
-        scenario: ind.accountabilityDilemma,
+        scenario: getLocalizedDilemma(ind, 'accountability', 'kn'),
         mcqOptions: [
           { id: 'A', text: 'ತಪ್ಪಿನ ಸಂಪೂರ್ಣ ವೈಯಕ್ತಿಕ ಜವಾಬ್ದಾರಿ ವಹಿಸಿ, ತಕ್ಷಣ ಪರಿಹಾರ ಒದಗಿಸಿ ಮತ್ತು ಭವಿಷ್ಯಕ್ಕಾಗಿ ಸ್ವಯಂಚಾಲಿತ ಪರೀಕ್ಷೆಗಳನ್ನು ಅಳವಡಿಸಿ.', points: 5, rationaleCategory: 'ಸಂಪೂರ್ಣ ಹೊಣೆಗಾರಿಕೆ' },
           { id: 'B', text: 'ಕೋಡ್ ಬರೆದ ಇತರ ಡೆವಲಪರ್ ಮೇಲೆ ದೋಷ ಹೊರಿಸಿ.', points: 1, rationaleCategory: 'ದೋಷಾರೋಪಣೆ' },
@@ -259,7 +284,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       hi: {
         title: 'दुविधा 4: अचानक आए नए नियमों के अनुसार कार्ययोजना में बदलाव',
-        scenario: ind.complianceDilemma,
+        scenario: getLocalizedDilemma(ind, 'compliance', 'hi'),
         mcqOptions: [
           { id: 'A', text: 'नियमों को सरल भागों में बांटें, गैर-जरूरी फीचर्स स्थगित करें और टीम के साथ मिलकर कार्य पुनः व्यवस्थित करें।', points: 5, rationaleCategory: 'सकारात्मक अनुकूलन' },
           { id: 'B', text: 'कानूनी टीम से कहें कि जब तक प्रोजेक्ट पूरा न हो, नए नियम न लगाएं।', points: 1, rationaleCategory: 'जिद्दी रवैया' },
@@ -271,7 +296,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       kn: {
         title: 'ಸನ್ನಿವೇಶ 4: ಅನಿರೀಕ್ಷಿತ ನಿಯಮಗಳ ಬದಲಾವಣೆ ಮತ್ತು ಹೊಂದಾಣಿಕೆ',
-        scenario: ind.complianceDilemma,
+        scenario: getLocalizedDilemma(ind, 'compliance', 'kn'),
         mcqOptions: [
           { id: 'A', text: 'ನಿಯಮಗಳನ್ನು ಸರಳ ಹಂತಗಳಾಗಿ ವಿಂಗಡಿಸಿ, ಕಡಿಮೆ ಪ್ರಾಮುಖ್ಯತೆಯ ಕಾರ್ಯಗಳನ್ನು ಮುಂದೂಡಿ ತಂಡದೊಂದಿಗೆ ಮರುಹೊಂದಿಸಿ.', points: 5, rationaleCategory: 'ಹೊಂದಾಣಿಕೆಯ ಚುರುಕುತನ' },
           { id: 'B', text: 'ನಮ್ಮ ಪ್ರಾಜೆಕ್ಟ್ ಮುಗಿಯುವವರೆಗೆ ಹೊಸ ನಿಯಮ ಜಾರಿಗೆ ತರಬೇಡಿ ಎಂದು ಒತ್ತಾಯಿಸಿ.', points: 1, rationaleCategory: 'ಹೊಂದಿಕೊಳ್ಳದ ಮನೋಭಾವ' },
@@ -301,7 +326,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       hi: {
         title: 'दुविधा 5: प्रतिस्पर्धी प्राथमिकताओं के बीच संतुलन',
-        scenario: ind.prioritisationDilemma,
+        scenario: getLocalizedDilemma(ind, 'prioritisation', 'hi'),
         mcqOptions: [
           { id: 'A', text: 'सुरक्षा पैच को पूरी तरह रोककर सिर्फ 4 ग्राहकों की समस्याओं में लग जाएं।', points: 2, rationaleCategory: 'अल्पकालिक सोच' },
           { id: 'B', text: '4 ग्राहकों को तात्कालिक वर्कअराउंड देकर अनब्लॉक करें, जबकि मुख्य टीम सुरक्षा पैच पर केंद्रित रहे।', points: 5, rationaleCategory: 'संतुलित प्राथमिकता एवं समाधान' },
@@ -313,7 +338,7 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
       },
       kn: {
         title: 'ಸನ್ನಿವೇಶ 5: ಸ್ಪರ್ಧಾತ್ಮಕ ಆದ್ಯತೆಗಳ ನಡುವೆ ಸಮತೋಲನ',
-        scenario: ind.prioritisationDilemma,
+        scenario: getLocalizedDilemma(ind, 'prioritisation', 'kn'),
         mcqOptions: [
           { id: 'A', text: 'ಸುರಕ್ಷತಾ ಪ್ಯಾಚ್ ಅನ್ನು ನಿಲ್ಲಿಸಿ ಕೇವಲ 4 ಗ್ರಾಹಕರ ಟಿಕೆಟ್‌ಗಳ ಮೇಲೆ ಗಮನಹರಿಸಿ.', points: 2, rationaleCategory: 'ಅಲ್ಪಾವಧಿ ಚಿಂತನೆ' },
           { id: 'B', text: '4 ಗ್ರಾಹಕರಿಗೆ ತಾತ್ಕಾಲಿಕ ಪರಿಹಾರ ನೀಡಿ, ಮುಖ್ಯ ತಂಡವನ್ನು ಸುರಕ್ಷತಾ ಪ್ಯಾಚ್ ಮುಗಿಸಲು ನಿಯೋಜಿಸಿ.', points: 5, rationaleCategory: 'ಸಮತೋಲಿತ ಆದ್ಯತೆ' },

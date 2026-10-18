@@ -18,9 +18,9 @@ export const ASSESSMENT_TRACK_OPTIONS = [
   {
     id: 'professional' as const,
     name: 'Working Professional Track',
-    framework: 'OCEAN (Big Five) + STAR',
-    questionCount: '34 Questions (30 OCEAN Likert + 4 STAR Subjective)',
-    description: '30 Likert-scale statements across Openness, Conscientiousness, Extraversion, Agreeableness, and Emotional Stability (6 per category) + 4 Subjective STAR prompts on 1 scenario.',
+    framework: 'Workplace Behavioral Style (30 Questions)',
+    questionCount: '30 Questions (Behavioral Statements with Experience Justifications)',
+    description: '30 Likert-scale statements across 5 workplace dimensions with 5 mandatory real-world experience justifications.',
     badge: '👔 Working Professionals',
   },
   {

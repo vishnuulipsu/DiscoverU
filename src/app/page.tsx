@@ -52,28 +52,7 @@ export default function HomePage() {
       <main className="flex-1">
         <section className="relative overflow-hidden pt-10 pb-20 px-4 sm:px-6 lg:px-8 border-b border-gray-100 bg-gradient-to-b from-white via-indigo-50/30 to-[#F8F9FD]">
           <div className="max-w-6xl mx-auto text-center relative z-10">
-            {/* DiscoverU Logo Display */}
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white ring-2 ring-[var(--ulipsu-indigo)]/20 bg-white p-1">
-                <Image
-                  src="/logo-icon.png"
-                  alt="DiscoverU Icon"
-                  width={80}
-                  height={80}
-                  priority
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
-              <div className="text-left">
-                <span className="text-xl sm:text-2xl font-black text-[var(--ulipsu-indigo)] tracking-tight block">
-                  DiscoverU
-                </span>
-                <span className="text-xs sm:text-sm font-bold text-[var(--ulipsu-amber-hover)] tracking-wide uppercase">
-                  Make Your Next Move Count
-                </span>
-              </div>
-            </div>
-
+            
             {/* Ulipsu-style pill badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--ulipsu-amber-light)] text-[var(--ulipsu-amber-hover)] text-xs sm:text-sm font-bold mb-6 border border-[var(--ulipsu-amber)]/30 shadow-xs">
               <Sparkles className="w-4 h-4 text-[var(--ulipsu-amber)]" />
@@ -81,7 +60,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-extrabold text-[var(--ulipsu-indigo)] tracking-tight leading-tight max-w-4xl mx-auto">
-              Dual-Perspective Evaluations Powered by <span className="text-[var(--ulipsu-amber)] underline decoration-wavy decoration-2">Adaptive AI Intelligence</span>
+              Dual-Perspective Evaluations Powered by <span className="text-[var(--ulipsu-amber)] underline decoration decoration-2">Adaptive AI Intelligence</span>
             </h1>
 
             <p className="mt-6 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">

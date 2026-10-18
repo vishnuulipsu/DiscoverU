@@ -412,11 +412,26 @@ Return ONLY a valid JSON object matching this schema:
       if (responseText) {
         const parsed = JSON.parse(responseText);
         if (parsed.questions && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+          const sanitizedQuestions = parsed.questions.map((q: any, idx: number) => {
+            const rawKey = (q.competencyKey || `competency_${idx + 1}`).toString().toLowerCase().trim().replace(/[\s-]+/g, '_');
+            const normalizedKey = rawKey === 'prioritization' ? 'prioritisation' : rawKey;
+            
+            return {
+              questionId: q.questionId || `q${idx + 1}`,
+              competencyKey: normalizedKey,
+              competencyName: q.competencyName || 'Core Competency',
+              idealEvidenceCriteria: q.idealEvidenceCriteria || 'Demonstrates structured analytical and behavioral trade-off reasoning.',
+              en: q.en || q,
+              hi: q.hi || q.en || q,
+              kn: q.kn || q.en || q,
+            };
+          });
+
           return {
             title: parsed.title || `Custom Assessment - ${params.targetIndustry}`,
             roleTarget: parsed.roleTarget || `${params.currentRole} (${params.targetIndustry})`,
             description: parsed.description || `AI-generated assessment for ${params.candidateName}`,
-            questions: parsed.questions,
+            questions: sanitizedQuestions,
             generatedByAi: true,
           };
         }

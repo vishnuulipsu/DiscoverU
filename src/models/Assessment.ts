@@ -17,7 +17,7 @@ export interface ILocalizedQuestionContent {
 
 export interface IDualPaneQuestion {
   questionId: string;
-  competencyKey: 'problem_solving' | 'communication' | 'accountability' | 'adaptability' | 'prioritisation';
+  competencyKey: string;
   competencyName: string;
   en: ILocalizedQuestionContent;
   hi: ILocalizedQuestionContent;
@@ -60,11 +60,7 @@ const LocalizedContentSchema = new Schema<ILocalizedQuestionContent>(
 const DualPaneQuestionSchema = new Schema<IDualPaneQuestion>(
   {
     questionId: { type: String, required: true },
-    competencyKey: { 
-      type: String, 
-      required: true, 
-      enum: ['problem_solving', 'communication', 'accountability', 'adaptability', 'prioritisation'] 
-    },
+    competencyKey: { type: String, required: true },
     competencyName: { type: String, required: true },
     en: { type: LocalizedContentSchema, required: true },
     hi: { type: LocalizedContentSchema, required: true },

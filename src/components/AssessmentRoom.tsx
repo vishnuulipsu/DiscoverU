@@ -34,8 +34,24 @@ import {
   Settings,
   Mail,
   Globe,
-  ArrowLeft
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Award
 } from 'lucide-react';
+import { SearchableSelect } from './SearchableSelect';
+import {
+  COUNTRIES,
+  STATES_BY_COUNTRY,
+  DEFAULT_STATES,
+  EDUCATION_LEVELS,
+  DEGREES_BY_LEVEL,
+  CAREER_STAGES,
+  WORK_EXPERIENCES,
+  GENDER_OPTIONS,
+  ASSESSMENT_LANGUAGES,
+  TARGET_ROLE_FIELDS,
+} from './CandidateProfileData';
 
 interface AssessmentRoomProps {
   assessmentId: string;
@@ -217,12 +233,42 @@ export function AssessmentRoom({
   const [activeRoleTarget, setActiveRoleTarget] = useState(initialRoleTarget);
   const [activeQuestions, setActiveQuestions] = useState<IDualPaneQuestion[]>(initialQuestions);
 
-  // Candidate Setup State
+  // Candidate Profile State
   const [candidateName, setCandidateName] = useState('');
   const [candidateEmail, setCandidateEmail] = useState('');
+  const [dob, setDob] = useState('');
+  const [gender, setGender] = useState('Prefer not to say');
+  const [country, setCountry] = useState('India');
+  const [stateRegion, setStateRegion] = useState('Karnataka');
+  const [educationLevel, setEducationLevel] = useState('Undergraduate');
+  const [degreeQualification, setDegreeQualification] = useState('B.Tech / B.E.');
+  const [careerStage, setCareerStage] = useState('Recent Graduate / Fresher');
+  const [workExperience, setWorkExperience] = useState('0-1 years');
+  const [targetRoleField, setTargetRoleField] = useState('Tech/Software');
   const [currentRole, setCurrentRole] = useState('Software Engineer');
   const [targetIndustry, setTargetIndustry] = useState('saas');
   const [testTrack, setTestTrack] = useState<'full' | 'crisis' | 'cross_functional' | 'governance'>('full');
+
+  const handleCountryChange = (newCountry: string) => {
+    setCountry(newCountry);
+    const available = STATES_BY_COUNTRY[newCountry] || DEFAULT_STATES;
+    setStateRegion(available[0]?.value || 'Central / Capital Region');
+  };
+
+  const handleEducationLevelChange = (newLevel: string) => {
+    setEducationLevel(newLevel);
+    const available = DEGREES_BY_LEVEL[newLevel] || [];
+    setDegreeQualification(available[0]?.value || 'Other Qualification');
+  };
+
+  const handleTargetRoleFieldChange = (newField: string) => {
+    setTargetRoleField(newField);
+    const fieldObj = TARGET_ROLE_FIELDS.find((f) => f.value === newField);
+    if (fieldObj) {
+      setTargetIndustry(fieldObj.industryId);
+      setCurrentRole(fieldObj.label);
+    }
+  };
 
   // Generator Modal State
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
@@ -344,16 +390,26 @@ export function AssessmentRoom({
 
   // Generate Tailored Assessment Handler
   const handleGenerateAssessment = async (startTestAfter: boolean = false) => {
-    if (!candidateName.trim()) {
-      setValidationError('Please enter your full name.');
-      return;
-    }
-    if (!candidateEmail.trim() || !candidateEmail.includes('@')) {
-      setValidationError('Please enter a valid work or personal email address.');
+    const trimmedName = candidateName.trim();
+    if (!trimmedName) {
+      setValidationError('Full Name is required and cannot be blank or whitespace only.');
       return;
     }
 
-    const roleToSend = currentRole === 'custom' ? (customRoleInput.trim() || 'Software Professional') : currentRole;
+    if (dob) {
+      const selectedDate = new Date(dob);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (selectedDate > today) {
+        setValidationError('Date of Birth cannot be in the future. Please select a valid date.');
+        return;
+      }
+    }
+
+    const emailToUse = candidateEmail.trim() || `${trimmedName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@candidate.evalsmart.com`;
+    const fieldObj = TARGET_ROLE_FIELDS.find((f) => f.value === targetRoleField);
+    const roleToSend = fieldObj?.label || targetRoleField || 'Software Professional';
+    const industryToSend = fieldObj?.industryId || targetIndustry || 'saas';
 
     setIsGenerating(true);
     setValidationError(null);
@@ -367,10 +423,11 @@ export function AssessmentRoom({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          candidateName: candidateName.trim(),
+          candidateName: trimmedName,
           currentRole: roleToSend,
-          targetIndustry,
+          targetIndustry: industryToSend,
           testTrack,
+          language,
         }),
       });
 
@@ -504,14 +561,28 @@ export function AssessmentRoom({
         };
       });
 
+      const trimmedName = candidateName.trim() || 'Candidate';
+      const emailToUse = candidateEmail.trim() || `${trimmedName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@candidate.evalsmart.com`;
+
       const res = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assessmentId: activeAssessmentId,
-          candidateName,
-          candidateEmail,
+          candidateName: trimmedName,
+          candidateEmail: emailToUse,
           languageSelected: language,
+          candidateProfile: {
+            dob: dob || undefined,
+            gender,
+            country,
+            stateRegion,
+            educationLevel,
+            degreeQualification,
+            careerStage,
+            workExperience,
+            targetRoleField,
+          },
           answers: payloadAnswers,
         }),
       });
@@ -739,7 +810,7 @@ export function AssessmentRoom({
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--ulipsu-indigo-light)] text-[var(--ulipsu-indigo)] text-[11px] font-bold uppercase tracking-wider">
                     <Sparkles className="w-3 h-3 text-[var(--ulipsu-amber)]" />
-                    AI Assessment Onboarding
+                    Candidate Assessment Onboarding
                   </span>
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-emerald-600" />
@@ -747,10 +818,10 @@ export function AssessmentRoom({
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--ulipsu-charcoal)]">
-                  Personalize Your Assessment
+                  Candidate Profile Setup
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-xl">
-                  Tell us who you are, what you are currently doing, and which industry you want to work in. DiscoverU AI Engine will synthesize custom real-world dilemmas tailored directly to your choices.
+                  Please complete your candidate profile before beginning the behavioral dilemma assessment. DiscoverU AI Engine will customize cognitive dilemmas calibrated to your background and target field.
                 </p>
               </div>
 
@@ -760,9 +831,18 @@ export function AssessmentRoom({
                 onClick={() => {
                   setCandidateName('Rahul Verma');
                   setCandidateEmail('rahul.verma@example.com');
-                  setCurrentRole('Software Engineer');
+                  setDob('1998-05-15');
+                  setGender('Male');
+                  setCountry('India');
+                  setStateRegion('Karnataka');
+                  setEducationLevel('Undergraduate');
+                  setDegreeQualification('B.Tech / B.E.');
+                  setCareerStage('Recent Graduate / Fresher');
+                  setWorkExperience('0-1 years');
+                  setLanguage('en');
+                  setTargetRoleField('Tech/Software');
                   setTargetIndustry('saas');
-                  setTestTrack('full');
+                  setCurrentRole('Software Engineer');
                   setValidationError(null);
                 }}
                 className="shrink-0 px-3.5 py-2 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
@@ -781,22 +861,25 @@ export function AssessmentRoom({
               </div>
             )}
 
-            {/* Form Steps */}
-            <div className="mt-8 space-y-8">
-              {/* STEP 1: Candidate Information */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
+            {/* Profile Form Sections */}
+            <div className="mt-8 space-y-7">
+              {/* SECTION 1: Personal Details */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
                     1
                   </div>
                   <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                    Candidate Details
+                    Personal Information
                   </h2>
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Full Name (Required, trimmed) */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                       Full Name <span className="text-red-500">*</span>
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Required, trimmed)</span>
                     </label>
                     <div className="relative">
                       <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -808,13 +891,17 @@ export function AssessmentRoom({
                           setValidationError(null);
                         }}
                         placeholder="e.g. Rahul Verma"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-sm text-gray-900 placeholder:text-gray-400"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-white"
+                        required
                       />
                     </div>
                   </div>
+
+                  {/* Candidate Email */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                      Work / Professional Email <span className="text-red-500">*</span>
+                      Work / Personal Email
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(For report delivery)</span>
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -826,212 +913,257 @@ export function AssessmentRoom({
                           setValidationError(null);
                         }}
                         placeholder="e.g. rahul.verma@example.com"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-sm text-gray-900 placeholder:text-gray-400"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-white"
                       />
                     </div>
+                  </div>
+
+                  {/* Date of Birth (Optional, reject future dates) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Date of Birth
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Optional, past dates only)</span>
+                    </label>
+                    <div className="relative">
+                      <Calendar className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="date"
+                        max={new Date().toISOString().split('T')[0]}
+                        value={dob}
+                        onChange={(e) => {
+                          setDob(e.target.value);
+                          setValidationError(null);
+                        }}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 bg-white cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Gender (Optional: Prefer not to say / Female / Male / Non-binary) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Gender
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Optional)</span>
+                    </label>
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+                    >
+                      {GENDER_OPTIONS.map((g) => (
+                        <option key={g.value} value={g.value}>
+                          {g.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* STEP 2: What are you currently doing? */}
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
+              {/* SECTION 2: Geographic Location (Default: India / Karnataka) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
                     2
                   </div>
                   <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                    What are you currently doing?
+                    Location (Country &amp; State/Region)
                   </h2>
                 </div>
-                <p className="text-xs text-gray-500 mb-3 ml-8">
-                  Select your current role or domain background so questions match your experience level.
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 ml-8">
-                  {ROLE_OPTIONS.map((r) => {
-                    const isSelected = currentRole === r.id;
-                    const IconComponent = r.icon;
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setCurrentRole(r.id)}
-                        className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition cursor-pointer ${
-                          isSelected
-                            ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/70 ring-2 ring-[var(--ulipsu-indigo)]/20 text-[var(--ulipsu-indigo)] font-bold'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium'
-                        }`}
-                      >
-                        <IconComponent className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[var(--ulipsu-indigo)]' : 'text-gray-500'}`} />
-                        <span className="text-xs leading-snug">{r.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
 
-                {currentRole === 'custom' && (
-                  <div className="mt-3 ml-8 animate-in fade-in">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      Enter Your Current Role / Title
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Country (Searchable dropdown, Default: India) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Country <span className="text-red-500">*</span>
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Searchable)</span>
                     </label>
-                    <input
-                      type="text"
-                      value={customRoleInput}
-                      onChange={(e) => setCustomRoleInput(e.target.value)}
-                      placeholder="e.g. Lead Cloud Architect, QA Automation Lead, Growth Marketing Specialist..."
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs text-gray-900"
+                    <SearchableSelect
+                      options={COUNTRIES}
+                      value={country}
+                      onChange={handleCountryChange}
+                      placeholder="Search country..."
+                      icon={<Globe className="w-4 h-4 text-gray-400" />}
                     />
                   </div>
-                )}
+
+                  {/* State / Region (Searchable dropdown, Default: Karnataka) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      State / Region <span className="text-red-500">*</span>
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Searchable)</span>
+                    </label>
+                    <SearchableSelect
+                      options={STATES_BY_COUNTRY[country] || DEFAULT_STATES}
+                      value={stateRegion}
+                      onChange={setStateRegion}
+                      placeholder="Search state / region..."
+                      icon={<MapPin className="w-4 h-4 text-gray-400" />}
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* STEP 3: Which industry do you want to work in? */}
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
+              {/* SECTION 3: Education & Qualification (Dynamic Dropdowns) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
                     3
                   </div>
                   <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                    Which industry do you want to work in?
+                    Education &amp; Qualification
                   </h2>
                 </div>
-                <p className="text-xs text-gray-500 mb-3 ml-8">
-                  DiscoverU AI Engine will synthesize scenario dilemmas specific to the technical and operational realities of this domain.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 ml-8">
-                  {INDUSTRY_OPTIONS.map((ind) => {
-                    const isSelected = targetIndustry === ind.id;
-                    const IconComponent = ind.icon;
-                    return (
-                      <button
-                        key={ind.id}
-                        type="button"
-                        onClick={() => setTargetIndustry(ind.id)}
-                        className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
-                          isSelected
-                            ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/70 ring-2 ring-[var(--ulipsu-indigo)]/20 shadow-xs'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-2">
-                              <IconComponent className={`w-4 h-4 ${isSelected ? 'text-[var(--ulipsu-indigo)]' : 'text-gray-500'}`} />
-                              <span className={`text-xs font-bold ${isSelected ? 'text-[var(--ulipsu-indigo)]' : 'text-gray-900'}`}>
-                                {ind.name}
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <span className="w-4 h-4 rounded-full bg-[var(--ulipsu-indigo)] text-white flex items-center justify-center text-[10px] font-bold">
-                                ✓
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-gray-500 leading-relaxed">
-                            {ind.desc}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Education Level (Dropdown) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Education Level <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={educationLevel}
+                      onChange={(e) => handleEducationLevelChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+                    >
+                      {EDUCATION_LEVELS.map((lvl) => (
+                        <option key={lvl.value} value={lvl.value}>
+                          {lvl.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Degree / Qualification (Dynamic based on Education Level) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Degree / Qualification <span className="text-red-500">*</span>
+                      <span className="text-[10px] text-indigo-600 ml-1 font-normal">(Filtered for {educationLevel})</span>
+                    </label>
+                    <select
+                      value={degreeQualification}
+                      onChange={(e) => setDegreeQualification(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+                    >
+                      {(DEGREES_BY_LEVEL[educationLevel] || []).map((deg) => (
+                        <option key={deg.value} value={deg.value}>
+                          {deg.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* STEP 4: Which test track do you want to choose? */}
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
+              {/* SECTION 4: Work Experience & Career Stage */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
                     4
                   </div>
                   <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                    Which test track do you want to take?
+                    Career Stage &amp; Work Experience
                   </h2>
                 </div>
-                <p className="text-xs text-gray-500 mb-3 ml-8">
-                  Choose the scope of behavioral competency areas you want evaluated.
-                </p>
-                <div className="space-y-2.5 ml-8">
-                  {TEST_TRACKS.map((t) => {
-                    const isSelected = testTrack === t.id;
-                    return (
-                      <div
-                        key={t.id}
-                        onClick={() => setTestTrack(t.id as 'full' | 'crisis' | 'cross_functional' | 'governance')}
-                        className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex items-center justify-between gap-4 ${
-                          isSelected
-                            ? 'border-[var(--ulipsu-amber)] bg-amber-50/70 ring-1 ring-[var(--ulipsu-amber)] shadow-xs'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs font-bold text-gray-900">{t.name}</span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-600">
-                              {t.questionsCount}
-                            </span>
-                            {t.id === 'full' && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--ulipsu-indigo)] text-white">
-                                Recommended
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-gray-500">{t.desc}</p>
-                        </div>
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${isSelected ? 'bg-[var(--ulipsu-amber)] text-gray-950 font-bold' : 'border border-gray-300'}`}>
-                          {isSelected && '✓'}
-                        </div>
-                      </div>
-                    );
-                  })}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Career Stage */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Career Stage <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={careerStage}
+                      onChange={(e) => setCareerStage(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+                    >
+                      {CAREER_STAGES.map((cs) => (
+                        <option key={cs.value} value={cs.value}>
+                          {cs.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Work Experience */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Work Experience <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={workExperience}
+                      onChange={(e) => setWorkExperience(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+                    >
+                      {WORK_EXPERIENCES.map((we) => (
+                        <option key={we.value} value={we.value}>
+                          {we.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* STEP 5: Assessment Language */}
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
+              {/* SECTION 5: Target Role & Assessment Language */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
                     5
                   </div>
                   <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                    Preferred Assessment Language
+                    Target Role &amp; Preferred Assessment Language
                   </h2>
                 </div>
-                <p className="text-xs text-gray-500 mb-3 ml-8">
-                  All dilemmas and evaluation rubrics support English, Hindi, and Kannada with language-neutral scoring.
-                </p>
-                <div className="flex flex-wrap gap-2.5 ml-8">
-                  {[
-                    { code: 'en', label: 'English', sub: 'Global Standard' },
-                    { code: 'hi', label: 'हिन्दी (Hindi)', sub: 'भाषा तटस्थ मूल्यांकन' },
-                    { code: 'kn', label: 'ಕನ್ನಡ (Kannada)', sub: 'ಭಾಷಾ ತಟಸ್ಥ ಮೌಲ್ಯಮಾಪನ' },
-                  ].map((l) => {
-                    const isSelected = language === l.code;
-                    return (
-                      <button
-                        key={l.code}
-                        type="button"
-                        onClick={() => setLanguage(l.code as 'en' | 'hi' | 'kn')}
-                        className={`px-4 py-2.5 rounded-xl border text-left transition cursor-pointer flex items-center gap-2 ${
-                          isSelected
-                            ? 'border-[var(--ulipsu-indigo)] bg-indigo-50/70 ring-2 ring-[var(--ulipsu-indigo)]/20 text-[var(--ulipsu-indigo)] font-bold'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
-                        }`}
-                      >
-                        <Globe className={`w-3.5 h-3.5 ${isSelected ? 'text-[var(--ulipsu-indigo)]' : 'text-gray-400'}`} />
-                        <div>
-                          <div className="text-xs font-bold leading-none">{l.label}</div>
-                          <div className="text-[10px] text-gray-500 leading-none mt-1">{l.sub}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Target Role / Career Field (Searchable dropdown) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Target Role / Career Field <span className="text-red-500">*</span>
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Searchable)</span>
+                    </label>
+                    <SearchableSelect
+                      options={TARGET_ROLE_FIELDS}
+                      value={targetRoleField}
+                      onChange={handleTargetRoleFieldChange}
+                      placeholder="Search career field..."
+                      icon={<Briefcase className="w-4 h-4 text-gray-400" />}
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1.5">
+                      {TARGET_ROLE_FIELDS.find((f) => f.value === targetRoleField)?.description}
+                    </p>
+                  </div>
+
+                  {/* Preferred Assessment Language (Dropdown) */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Preferred Assessment Language <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'kn')}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--ulipsu-indigo)] text-xs sm:text-sm text-gray-900 bg-white cursor-pointer font-medium"
+                    >
+                      {ASSESSMENT_LANGUAGES.map((lang) => (
+                        <option key={lang.value} value={lang.value}>
+                          {lang.label} ({lang.sublabel})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-emerald-700 font-medium mt-1.5 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      Language-neutral scoring with trilingual construct parity
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* SUBMIT & START ACTION */}
+              {/* SUBMIT & GENERATE ACTION */}
               <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="text-[11px] text-gray-500 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[var(--ulipsu-amber)] shrink-0" />
-                  <span>Powered by DiscoverU AI Engine • Bespoke Dilemmas &amp; STAR Evaluation</span>
+                  <span>Powered by DiscoverU AI Engine • Situational Dilemma Generation &amp; STAR Evaluation</span>
                 </div>
 
                 <button

@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   try {
     await connectToDatabase();
     const body = await req.json();
-    const { candidateName, candidateEmail, languageSelected, answers, assessmentId } = body;
+    const { candidateName, candidateEmail, languageSelected, answers, assessmentId, candidateProfile } = body;
 
     if (!candidateName || !candidateEmail || !answers || !assessmentId) {
       return NextResponse.json({ success: false, error: 'Missing required submission fields' }, { status: 400 });
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       candidateName,
       candidateEmail,
       languageSelected: languageSelected || 'en',
+      candidateProfile: candidateProfile || null,
       status: 'submitted',
       answers,
       submittedAt: new Date(),
@@ -95,6 +96,7 @@ export async function POST(req: Request) {
       candidateName,
       candidateEmail,
       candidateLanguage: languageSelected || 'en',
+      candidateProfile: candidateProfile || null,
       modelUsed: evaluation.modelUsed,
       promptVersionUsed: activeRecruiterPrompt?.versionNumber || 1,
       recruiterView: evaluation.recruiterView,

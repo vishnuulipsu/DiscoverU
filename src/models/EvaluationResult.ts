@@ -153,6 +153,7 @@ export interface IEvaluationResult extends Document {
   candidateName: string;
   candidateEmail: string;
   candidateLanguage: 'en' | 'hi' | 'kn';
+  candidateProfile?: Record<string, unknown>;
   modelUsed: string;
   promptVersionUsed: number;
   recruiterView: IRecruiterEvaluation;
@@ -168,6 +169,7 @@ const EvaluationResultSchema = new Schema<IEvaluationResult>(
     candidateName: { type: String, required: true },
     candidateEmail: { type: String, required: true },
     candidateLanguage: { type: String, enum: ['en', 'hi', 'kn'], default: 'en' },
+    candidateProfile: { type: Schema.Types.Mixed, default: null },
     modelUsed: { type: String, default: 'gemini-2.5-pro' },
     promptVersionUsed: { type: Number, default: 1 },
     recruiterView: { type: Schema.Types.Mixed, required: true },

@@ -7,11 +7,24 @@ export interface ICandidateAnswer {
   timeSpentSeconds?: number;
 }
 
+export interface ICandidateProfileData {
+  dob?: string;
+  gender?: string;
+  country?: string;
+  stateRegion?: string;
+  educationLevel?: string;
+  degreeQualification?: string;
+  careerStage?: string;
+  workExperience?: string;
+  targetRoleField?: string;
+}
+
 export interface ISubmission extends Document {
   assessmentId: string;
   candidateName: string;
   candidateEmail: string;
   languageSelected: 'en' | 'hi' | 'kn';
+  candidateProfile?: ICandidateProfileData;
   status: 'in_progress' | 'submitted' | 'evaluated';
   answers: ICandidateAnswer[];
   submittedAt?: Date;
@@ -29,12 +42,28 @@ const CandidateAnswerSchema = new Schema<ICandidateAnswer>(
   { _id: false }
 );
 
+const CandidateProfileSchema = new Schema<ICandidateProfileData>(
+  {
+    dob: { type: String },
+    gender: { type: String },
+    country: { type: String },
+    stateRegion: { type: String },
+    educationLevel: { type: String },
+    degreeQualification: { type: String },
+    careerStage: { type: String },
+    workExperience: { type: String },
+    targetRoleField: { type: String },
+  },
+  { _id: false }
+);
+
 const SubmissionSchema = new Schema<ISubmission>(
   {
     assessmentId: { type: String, required: true, index: true },
     candidateName: { type: String, required: true },
     candidateEmail: { type: String, required: true, index: true },
     languageSelected: { type: String, enum: ['en', 'hi', 'kn'], default: 'en' },
+    candidateProfile: { type: CandidateProfileSchema, default: null },
     status: { 
       type: String, 
       enum: ['in_progress', 'submitted', 'evaluated'], 

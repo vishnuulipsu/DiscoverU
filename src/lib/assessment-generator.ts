@@ -399,14 +399,22 @@ Return ONLY a valid JSON object matching this schema:
   ]
 }`;
 
-      const response = await ai.models.generateContent({
-        model: modelName,
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          temperature: 0.3,
-        },
-      });
+      const timeoutMs = 15000;
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Gemini generation timed out after ${timeoutMs}ms`)), timeoutMs)
+      );
+
+      const response = await Promise.race([
+        ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            temperature: 0.3,
+          },
+        }),
+        timeoutPromise,
+      ]);
 
       const responseText = response.text?.trim() || '';
       if (responseText) {

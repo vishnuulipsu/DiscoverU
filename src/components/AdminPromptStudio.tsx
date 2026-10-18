@@ -96,6 +96,10 @@ export function AdminPromptStudio({ initialTemplates, initialVersions }: AdminPr
         }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Server returned status ${res.status}. Please check server connectivity.`);
+      }
       const data = await res.json();
       setTestResult(data);
     } catch (err: unknown) {
@@ -125,6 +129,10 @@ export function AdminPromptStudio({ initialTemplates, initialVersions }: AdminPr
         }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Server returned status ${res.status}. Please check server connectivity.`);
+      }
       const data = await res.json();
       if (data.success && data.version) {
         setVersions((prev) => [

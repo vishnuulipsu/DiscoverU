@@ -371,12 +371,25 @@ export function AssessmentRoom({
           currentRole: roleToSend,
           targetIndustry,
           testTrack,
-          language,
         }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          res.status === 504 || res.status === 502
+            ? 'The AI Engine took longer than expected to generate dilemmas. Please click Generate Assessment again.'
+            : `Server returned unexpected status ${res.status}. Please try again.`
+        );
+      }
+
       const data = await res.json();
-      if (data.success && data.questions) {
+      if (!res.ok || !data.success) {
+        setValidationError(data.error || 'Failed to generate tailored questions with DiscoverU AI Engine.');
+        return;
+      }
+
+      if (data.questions) {
         setGenerationStep(4);
         setActiveQuestions(data.questions);
         setActiveRoleTarget(data.roleTarget);
@@ -503,8 +516,17 @@ export function AssessmentRoom({
         }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          res.status === 504 || res.status === 502
+            ? 'The AI evaluation took longer than expected or the server is busy. Please try submitting again.'
+            : `Server returned unexpected response (status ${res.status}). Please try again.`
+        );
+      }
+
       const data = await res.json();
-      if (data.success && data.evaluationId) {
+      if (res.ok && data.success && data.evaluationId) {
         router.push(`/recruiter?evalId=${data.evaluationId}`);
       } else {
         setValidationError(data.error || 'Failed to submit evaluation.');

@@ -60,21 +60,7 @@ export async function runGeminiEvaluation(
         .replace('{{candidateLanguage}}', input.candidateLanguage)
         .replace('{{candidateResponses}}', formattedResponses);
 
-      const recruiterResponse = await ai.models.generateContent({
-        model: modelName,
-        contents: recruiterPrompt,
-        config: {
-          responseMimeType: 'application/json',
-          temperature: 0.2,
-        },
-      });
-
-      let rawRecruiter = JSON.parse(recruiterResponse.text || '{}');
-      if (Array.isArray(rawRecruiter) && rawRecruiter.length > 0) {
-        rawRecruiter = rawRecruiter[0];
-      }
-
-      // 2. Run Candidate Growth Evaluation
+      // 2. Candidate Growth Prompt Template
       const baseCandidateTemplate =
         customCandidatePrompt &&
         customCandidatePrompt.includes('{{candidateResponses}}') &&
@@ -88,14 +74,37 @@ export async function runGeminiEvaluation(
         .replace('{{targetLanguage}}', input.candidateLanguage)
         .replace('{{candidateResponses}}', formattedResponses);
 
-      const candidateResponse = await ai.models.generateContent({
-        model: modelName,
-        contents: candidatePrompt,
-        config: {
-          responseMimeType: 'application/json',
-          temperature: 0.4,
-        },
-      });
+      const timeoutMs = 16000;
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Gemini evaluation timed out after ${timeoutMs}ms`)), timeoutMs)
+      );
+
+      const [recruiterResponse, candidateResponse] = await Promise.race([
+        Promise.all([
+          ai.models.generateContent({
+            model: modelName,
+            contents: recruiterPrompt,
+            config: {
+              responseMimeType: 'application/json',
+              temperature: 0.2,
+            },
+          }),
+          ai.models.generateContent({
+            model: modelName,
+            contents: candidatePrompt,
+            config: {
+              responseMimeType: 'application/json',
+              temperature: 0.4,
+            },
+          }),
+        ]),
+        timeoutPromise,
+      ]);
+
+      let rawRecruiter = JSON.parse(recruiterResponse.text || '{}');
+      if (Array.isArray(rawRecruiter) && rawRecruiter.length > 0) {
+        rawRecruiter = rawRecruiter[0];
+      }
 
       let rawCandidate = JSON.parse(candidateResponse.text || '{}');
       if (Array.isArray(rawCandidate) && rawCandidate.length > 0) {

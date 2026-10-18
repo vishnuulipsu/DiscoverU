@@ -1,0 +1,52 @@
+import { NextResponse } from 'next/server';
+import connectToDatabase from '@/lib/mongodb';
+import { Assessment } from '@/models/Assessment';
+import { generateAssessmentWithGemini, GenerateAssessmentParams } from '@/lib/assessment-generator';
+
+export async function POST(req: Request) {
+  try {
+    const body: GenerateAssessmentParams = await req.json();
+    const { candidateName, currentRole, targetIndustry, testTrack, language } = body;
+
+    if (!targetIndustry || !currentRole) {
+      return NextResponse.json(
+        { success: false, error: 'Target industry and current role are required.' },
+        { status: 400 }
+      );
+    }
+
+    await connectToDatabase();
+
+    // Generate bespoke assessment dilemmas using Gemini AI
+    const generated = await generateAssessmentWithGemini({
+      candidateName: candidateName || 'Candidate',
+      currentRole,
+      targetIndustry,
+      testTrack: testTrack || 'full',
+      language: language || 'en',
+    });
+
+    // Save customized assessment into MongoDB
+    const assessmentDoc = await Assessment.create({
+      title: generated.title,
+      roleTarget: generated.roleTarget,
+      version: generated.generatedByAi ? 'v2.0-gemini' : 'v2.0-dynamic',
+      description: generated.description,
+      timeLimitMinutes: generated.questions.length * 10,
+      questions: generated.questions,
+    });
+
+    return NextResponse.json({
+      success: true,
+      assessmentId: assessmentDoc._id.toString(),
+      roleTarget: generated.roleTarget,
+      title: generated.title,
+      questions: generated.questions,
+      version: generated.generatedByAi ? 'v2.0-gemini' : 'v2.0-dynamic',
+      generatedByAi: generated.generatedByAi,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to generate tailored assessment';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}

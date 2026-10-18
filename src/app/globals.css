@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #F8F9FD;
   --foreground: #171717;
+  
+  /* Ulipsu Brand Theme Tokens */
+  --ulipsu-indigo: #3A3088;
+  --ulipsu-indigo-hover: #4D42AA;
+  --ulipsu-indigo-light: #EEEDFA;
+  
+  --ulipsu-amber: #F5A706;
+  --ulipsu-amber-hover: #D47700;
+  --ulipsu-amber-light: #FFF7E8;
+  
+  --ulipsu-emerald: #40A050;
+  --ulipsu-emerald-light: #EBF7EE;
+  
+  --ulipsu-coral: #EF3B3B;
+  --ulipsu-coral-light: #FDEDED;
+  
+  --ulipsu-charcoal: #171717;
+  --ulipsu-muted: #66687B;
+  --ulipsu-surface: #FFFFFF;
+  --ulipsu-border: #E2E2EA;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  
+  --color-ulipsu-indigo: var(--ulipsu-indigo);
+  --color-ulipsu-indigo-hover: var(--ulipsu-indigo-hover);
+  --color-ulipsu-indigo-light: var(--ulipsu-indigo-light);
+  
+  --color-ulipsu-amber: var(--ulipsu-amber);
+  --color-ulipsu-amber-hover: var(--ulipsu-amber-hover);
+  --color-ulipsu-amber-light: var(--ulipsu-amber-light);
+  
+  --color-ulipsu-emerald: var(--ulipsu-emerald);
+  --color-ulipsu-emerald-light: var(--ulipsu-emerald-light);
+  
+  --color-ulipsu-coral: var(--ulipsu-coral);
+  --color-ulipsu-coral-light: var(--ulipsu-coral-light);
+  
+  --color-ulipsu-charcoal: var(--ulipsu-charcoal);
+  --color-ulipsu-muted: var(--ulipsu-muted);
+  --color-ulipsu-surface: var(--ulipsu-surface);
+  --color-ulipsu-border: var(--ulipsu-border);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-hindi: 'Noto Sans Devanagari', 'Plus Jakarta Sans', sans-serif;
+  --font-kannada: 'Noto Sans Kannada', 'Plus Jakarta Sans', sans-serif;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Custom scrollbars for side-by-side assessment pane */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c5c5d6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9999b2;
 }

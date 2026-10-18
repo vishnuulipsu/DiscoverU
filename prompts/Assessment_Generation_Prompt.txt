@@ -1,0 +1,297 @@
+# MASTER PROMPT: PERSONALITY AND BEHAVIOURAL ASSESSMENT GENERATION
+
+## 1. Role and Scope
+
+Work on the existing assessment application to refine the assessment questions, response collection, scoring rules, and multilingual question behaviour for Indian students, freshers, recent graduates, and working professionals.
+
+The assessment contains two internal components:
+1. A self-report personality questionnaire based on the Big Five personality dimensions.
+2. A guided behavioural assessment using four structured response fields: Situation, Task, Action, and Result.
+
+These frameworks are internal assessment logic only.
+
+**Do not rebuild the application, replace its architecture, or redesign unrelated functionality.** Update only the existing assessment generation and response behaviour described in this prompt. Do not generate the assessment report in this prompt; report generation is handled by a separate prompt.
+
+## 2. Candidate-Facing Labels: Do Not Display Framework Names
+
+Do not display the words “OCEAN” or “STAR” anywhere in the candidate-facing assessment experience.
+
+This rule applies to:
+- Section headings.
+- Question cards and question labels.
+- Badges and tags.
+- Instructions, helper text, and tooltips.
+- Progress indicators.
+- Response fields and navigation.
+- Validation messages.
+- Completion messages.
+
+Use candidate-friendly section headings such as:
+- “Section 1: Understanding Your Personality”
+- “Section 2: Real-Life Situations and Experiences”
+
+The labels “Situation,” “Task,” “Action,” and “Result” should remain visible as the four response-field labels. Do not display the acronym “STAR” or framework-related badges.
+
+Keep internal trait IDs, question IDs, scoring keys, reverse-scoring flags, and competency metadata available to the assessment logic. Hiding framework names on the frontend must not remove or alter underlying data.
+
+Do not display a “Psychometrically Validated” badge or claim unless appropriate validation evidence has been established and documented.
+
+## 3. Candidate Profile and Career Stage
+
+Use existing candidate profile fields where available, including:
+- Name or preferred display name.
+- Career stage: student, fresher, recent graduate, or working professional.
+- Education level and degree.
+- Work experience.
+- Target role or career field, if provided.
+
+Do not assume that every candidate has professional experience. Academic projects, internships, volunteering, extracurricular activities, personal projects, family responsibilities, and everyday problem-solving are acceptable sources of real-life behavioural examples.
+
+Do not infer personality, ability, motivation, values, or employability from demographic information such as gender, date of birth, state, or country. Such information must not alter assessment scoring.
+
+Do not require language preference during onboarding. English is the default display language, and language selection must remain available throughout the assessment.
+
+## 4. Personality Question Generation
+
+Generate or refine the existing personality questionnaire using the Big Five personality framework. Assess these five dimensions internally:
+1. Openness to Experience.
+2. Conscientiousness.
+3. Extraversion.
+4. Agreeableness.
+5. Neuroticism, expressed in candidate-facing explanations using neutral language such as emotional sensitivity where appropriate.
+
+Follow the existing assessment specification and scoring rules. If the established specification calls for 30 items, retain 30 items with six items per dimension and the existing five-point response scale. Do not change an established item count or scoring design without an explicit requirement.
+
+### Question-writing requirements
+
+Each question must:
+- Assess one clearly defined personality tendency.
+- Use simple, direct, age-appropriate language.
+- Be understandable to Indian students, freshers, and working professionals.
+- Avoid unnecessarily complex vocabulary, double negatives, and ambiguous wording.
+- Avoid combining multiple unrelated behaviours in one question.
+- Avoid assuming access to a particular job, industry, lifestyle, or educational experience.
+- Avoid obvious socially desirable answers wherever possible.
+- Avoid duplicate questions that measure essentially the same behaviour.
+- Avoid wording that makes one response appear morally superior.
+- Preserve the intended construct and scoring direction.
+- Be appropriate for the candidate's career stage without changing what the underlying trait measures.
+
+Do not display a trait name or internal competency label beside an individual question.
+
+### Response options
+
+Use the existing response scale consistently. If the assessment specification requires a five-point agreement scale, use:
+1. Strongly disagree
+2. Disagree
+3. Neither agree nor disagree
+4. Agree
+5. Strongly agree
+
+Translate response options accurately when the candidate changes language. Do not alter the response scale between questions unless the established specification explicitly requires it.
+
+### Personality scoring
+
+- Calculate scores using the defined scoring key.
+- Apply reverse scoring correctly.
+- Check that all required items have valid responses.
+- Use only established interpretation thresholds and benchmarks.
+- Do not invent percentiles, norms, cut-offs, or statistical claims.
+- Do not create an overall personality score unless a validated method has been explicitly defined.
+- Do not assign an MBTI type or another personality type unless a separate, appropriately specified assessment supports it.
+- Do not diagnose mental health conditions or predict job success from personality scores.
+- Keep personality scores independent of behavioural response scores.
+
+## 5. Behavioural Assessment: Realistic Scenarios and Four Mandatory Fields
+
+Replace vague, open-ended behavioural questions with realistic scenarios followed by four separate response fields. Do not use one large text box asking the candidate to explain the entire experience.
+
+Every behavioural question must include:
+1. A concrete, realistic scenario.
+2. A Situation field.
+3. A Task field.
+4. An Action field.
+5. A Result field.
+
+All four fields are mandatory.
+
+### 5.1 Generate four distinct behavioural scenarios
+
+Generate four scenarios covering these internal competency areas:
+
+**Scenario A: Problem-solving and ownership**
+An important task is blocked by an unexpected problem. The candidate needs to understand the issue, decide what to do, and work towards an outcome.
+
+**Scenario B: Teamwork and disagreement**
+A group is working towards a shared objective, but differing opinions, uneven participation, or a coordination issue threatens progress.
+
+**Scenario C: Adaptability and learning**
+An unfamiliar task, changed requirement, or unexpected development requires the candidate to learn something new or adjust their approach.
+
+**Scenario D: Setbacks and feedback**
+The candidate receives critical feedback, encounters a disappointing outcome, makes a mistake, or falls short of an expectation and needs to respond constructively.
+
+These are internal competency categories. Do not display the framework name or technical competency labels as frontend badges.
+
+### 5.2 Scenario quality requirements
+
+Each scenario must:
+- Describe a plausible real-life situation with enough context to understand the problem.
+- Clearly establish the challenge, constraint, or decision.
+- Include realistic constraints where appropriate, such as limited time, incomplete information, competing priorities, disagreement, or an unexpected change.
+- Avoid being so vague that candidates do not know what experience to recall.
+- Avoid prescribing the correct answer or leading candidates towards a socially desirable response.
+- Avoid assuming professional experience or a specific technical background.
+- Be suitable for both freshers and experienced professionals.
+- Allow candidates to describe a similar real experience instead of falsely claiming that the displayed event happened to them.
+- Avoid repeating the same underlying scenario with superficial wording changes.
+
+### 5.3 Example scenario
+
+Use the following as an example of the expected specificity and clarity:
+
+“You are working with two classmates on a project that must be submitted the next day. During the final review, you discover that an important part of the project does not work as expected. Your teammates are unsure whether to fix the issue or submit the project with the problem unresolved. There is limited time left, and you need to decide how to proceed.”
+
+Follow the scenario with this instruction:
+
+“Think of a real experience that is similar to this situation. It can be from your studies, projects, internships, work, volunteering, or personal activities. Your experience does not need to match the example exactly. Describe honestly what happened and what you personally did.”
+
+Generate similarly clear but distinct scenarios for the other three competency areas.
+
+### 5.4 Four separate response fields
+
+Display each field as an independent question with its own text-entry area.
+
+**Situation**
+Question: “What was happening in the experience you are describing? What made the situation challenging?”
+Placeholder: “Describe the context and what was happening...”
+
+**Task**
+Question: “What were you responsible for, and what needed to be achieved?”
+Placeholder: “Explain your responsibility and the goal...”
+
+**Action**
+Question: “What did you personally do? Describe the steps you took and why you chose that approach.”
+Placeholder: “Describe the actions you took and your reasoning...”
+
+**Result**
+Question: “What happened in the end? What was the outcome, and what did you learn?”
+Placeholder: “Describe the outcome, impact, or learning...”
+
+Keep Situation, Task, Action, and Result visible as field labels. Do not display the acronym “STAR” or framework badges.
+
+Tailor the scenario and wording to the competency being assessed while keeping the four-field structure consistent.
+
+### 5.5 Real-experience requirement
+
+The scenario is a prompt to help the candidate recall a relevant experience. It must not force the candidate to claim that the exact displayed event happened to them.
+
+Tell candidates they may use a relevant real experience from education, projects, internships, volunteering, extracurricular activities, personal projects, family responsibilities, everyday problem-solving, or employment.
+
+If the candidate has never experienced a directly matching situation, they may describe the closest relevant real event. Do not require them to invent an event or claim professional experience they do not have.
+
+If a candidate gives a hypothetical answer, preserve that distinction internally. Do not represent hypothetical reasoning as demonstrated past behaviour.
+
+### 5.6 Mandatory validation
+
+The candidate must complete all four fields before proceeding to the next behavioural question.
+
+Implement these rules in the existing assessment flow:
+- Reject empty and whitespace-only responses.
+- Reject responses containing only punctuation or meaningless filler.
+- Display an inline validation message identifying the specific field that needs attention.
+- Preserve all responses when validation fails.
+- Preserve responses when navigating backwards or switching language.
+- Do not mark a question complete until all four fields pass validation.
+- Do not auto-fill missing responses using AI.
+- Do not impose an arbitrary high word count that makes the assessment burdensome.
+- Use a modest configurable minimum response length only if needed, and do not confuse length with answer quality.
+
+Suggested validation messages:
+- Situation: “Please describe the context of your experience.”
+- Task: “Please explain your responsibility or goal.”
+- Action: “Please describe the steps you personally took.”
+- Result: “Please describe the outcome or what you learned.”
+
+The Next Question action must not advance while any required field is incomplete or invalid.
+
+## 6. Behavioural Scoring
+
+Use the existing behavioural scoring rubric if one is already defined. Do not silently change it.
+
+If the established rubric uses a 1–4 scale, apply its existing criteria consistently to:
+- Situation clarity.
+- Task and personal responsibility.
+- Action, reasoning, and execution.
+- Result, impact, and learning.
+
+Score the quality and relevance of the evidence, not the candidate's writing style, response length, English fluency, or use of corporate terminology.
+
+For each response:
+- Distinguish the candidate's own actions from those of other people.
+- Do not invent decisions, achievements, metrics, outcomes, or lessons.
+- Recognise reasonable actions even if the final outcome was outside the candidate's control.
+- Treat missing information as an evidence gap, not automatic proof of incompetence.
+- Distinguish past behaviour from hypothetical reasoning.
+- Preserve the original candidate response for report generation.
+- Keep behavioural scores separate from personality scores.
+- Do not generate a combined personality and employability score.
+
+## 7. Multilingual Assessment
+
+English is the default display language. Kannada and Hindi should initially be supported, with the ability to add more languages later.
+
+Language must be selectable and changeable throughout the assessment, not just at onboarding.
+
+### Language switching
+
+- Keep a language control available throughout the assessment.
+- Translate questions, scenarios, instructions, response options, field labels, placeholders, and validation messages into the selected language.
+- Preserve every candidate response exactly as originally typed when the display language changes.
+- Do not automatically translate, overwrite, or reformat saved responses.
+- Keep question IDs, trait IDs, scoring keys, and response field IDs language-independent.
+- Switching language must not reset progress, alter scores, or create duplicate responses.
+- Do not display internal framework names after switching languages.
+
+### Simplify this question
+
+Provide a “Simplify this question” action for question or scenario text that the candidate finds difficult to understand.
+
+When selected:
+- Rewrite the current text in simpler language.
+- Keep the explanation in the currently selected language.
+- Preserve the original meaning, behavioural construct, timeframe, qualifiers, emotional intensity, negation, and scoring direction.
+- Do not suggest an answer or encourage a socially desirable response.
+- Do not remove important constraints from behavioural scenarios.
+- Do not merge the Situation, Task, Action, and Result prompts.
+- Keep the original question available and allow the candidate to return to it.
+- Do not alter or clear any response already entered.
+- Do not penalise the candidate for using simplification.
+
+For translated questions, simplify from the canonical source meaning rather than introducing a different interpretation.
+
+Use human translation review and pilot testing to assess linguistic clarity and equivalence. Do not assume that AI-generated translations are psychometrically equivalent merely because they read naturally.
+
+## 8. Data Integrity and Quality Checks
+
+Before finalising questions or scoring:
+1. Confirm that every personality question maps to a defined internal trait and scoring key.
+2. Confirm that reverse-scored items are correctly flagged and scored.
+3. Confirm that behavioural scenarios cover distinct competencies and are not repetitive.
+4. Confirm that each behavioural question has four separate mandatory response fields.
+5. Confirm that empty, whitespace-only, and meaningless responses cannot bypass validation.
+6. Confirm that language switching preserves saved responses and progress.
+7. Confirm that simplification preserves the original meaning and scoring direction.
+8. Confirm that personality and behavioural scores remain separate.
+9. Confirm that missing or contradictory data is flagged rather than silently invented or corrected.
+10. Confirm that the frontend does not display the framework names as labels or badges.
+11. Do not claim psychometric validation without supporting evidence.
+12. Preserve unrelated existing functionality and data.
+
+## 9. Final Instruction
+
+Apply these requirements to the existing assessment application and workflow. Do not rebuild the application or alter unrelated features.
+
+Generate clear, fair, accessible, realistic assessment questions and collect structured responses that can be scored consistently and passed to the separate report-generation prompt.
+
+Keep internal assessment metadata available to the assessment logic while presenting candidates with plain-language questions and instructions.

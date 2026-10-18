@@ -1,17 +1,28 @@
 {
-  "name": "app_temp",
+  "name": "v8hak-evalpulse",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "seed": "node scripts/seed.mjs",
+    "lint": "eslint",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:reload": "pm2 reload ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop ecosystem.config.js",
+    "pm2:logs": "pm2 logs evalsmart"
   },
   "dependencies": {
+    "@google/genai": "^2.30.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.59.0",
+    "mongoose": "^9.11.2",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

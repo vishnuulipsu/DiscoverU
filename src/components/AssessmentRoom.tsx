@@ -42,6 +42,7 @@ import {
 import { SearchableSelect } from './SearchableSelect';
 import {
   COUNTRIES,
+  INDIAN_STATES,
   STATES_BY_COUNTRY,
   DEFAULT_STATES,
   EDUCATION_LEVELS,
@@ -960,44 +961,52 @@ export function AssessmentRoom({
                 </div>
               </div>
 
-              {/* SECTION 2: Geographic Location (Default: India / Karnataka) */}
+              {/* SECTION 2: Geographic Location (Restricted to India) */}
               <div className="p-5 sm:p-6 rounded-2xl bg-gray-50/70 border border-gray-100">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
-                    2
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-[var(--ulipsu-indigo)] text-white text-xs font-bold flex items-center justify-center">
+                      2
+                    </div>
+                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                      Location (Country &amp; State)
+                    </h2>
                   </div>
-                  <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                    Location (Country &amp; State/Region)
-                  </h2>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Restricted to India 🇮🇳
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Country (Searchable dropdown, Default: India) */}
+                  {/* Country (Fixed / Restricted to India) */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                       Country <span className="text-red-500">*</span>
-                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Searchable)</span>
+                      <span className="text-[10px] text-gray-400 ml-1 font-normal">(Restricted)</span>
                     </label>
-                    <SearchableSelect
-                      options={COUNTRIES}
-                      value={country}
-                      onChange={handleCountryChange}
-                      placeholder="Search country..."
-                      icon={<Globe className="w-4 h-4 text-gray-400" />}
-                    />
+                    <div className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-gray-300 bg-white shadow-xs text-xs sm:text-sm text-gray-900 font-medium">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-base select-none">🇮🇳</span>
+                        <span className="font-semibold text-gray-950">India</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-full">
+                        India Only
+                      </span>
+                    </div>
                   </div>
 
-                  {/* State / Region (Searchable dropdown, Default: Karnataka) */}
+                  {/* State / Union Territory (Searchable dropdown across all 28 states & 8 UTs, Default: Karnataka) */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                      State / Region <span className="text-red-500">*</span>
+                      State / Union Territory <span className="text-red-500">*</span>
                       <span className="text-[10px] text-gray-400 ml-1 font-normal">(Searchable)</span>
                     </label>
                     <SearchableSelect
-                      options={STATES_BY_COUNTRY[country] || DEFAULT_STATES}
+                      options={INDIAN_STATES}
                       value={stateRegion}
                       onChange={setStateRegion}
-                      placeholder="Search state / region..."
+                      placeholder="Search state / union territory..."
                       icon={<MapPin className="w-4 h-4 text-gray-400" />}
                     />
                   </div>

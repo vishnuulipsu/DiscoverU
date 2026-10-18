@@ -46,12 +46,17 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
                   answers: [],
                 }).candidateView);
 
+        const candidateProfile = doc.candidateProfile as Record<string, unknown> | undefined;
+        const targetRole = (candidateProfile?.targetRole as string) || doc.recruiterView?.roleFitSummary?.roleAssessed || 'Product Management';
+
         return {
           growthReport: report,
-          candidateName: doc.candidateName,
+          candidateName: doc.candidateName || 'Nandini Perumal',
           candidateLanguage: chosenLang,
           isLiveDb: true,
           evalId: doc._id.toString(),
+          targetRole,
+          candidateId: doc.candidateView?.candidateId || doc._id.toString() || 'cand_1792308629917',
         };
       }
     } catch (e) {
@@ -63,7 +68,7 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
   try {
     await connectToDatabase();
     const nandiniDoc = await EvaluationResult.findOne({ candidateName: /Nandini/i }).lean();
-    const doc = nandiniDoc || await EvaluationResult.findOne().sort({ createdAt: -1 }).lean();
+    const doc = nandiniDoc || (await EvaluationResult.findOne().sort({ createdAt: -1 }).lean());
     if (doc && doc.candidateView) {
       const isNandini = doc.candidateName?.toLowerCase().includes('nandini') || doc.candidateEmail?.includes('nandini');
       const rawCandidate = (doc.candidateView as unknown) as Record<string, unknown> | undefined;
@@ -81,12 +86,17 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
                 answers: [],
               }).candidateView);
 
+      const candidateProfile = doc.candidateProfile as Record<string, unknown> | undefined;
+      const targetRole = (candidateProfile?.targetRole as string) || doc.recruiterView?.roleFitSummary?.roleAssessed || 'Product Management';
+
       return {
         growthReport: report,
-        candidateName: doc.candidateName,
+        candidateName: doc.candidateName || 'Nandini Perumal',
         candidateLanguage: chosenLang,
         isLiveDb: true,
         evalId: doc._id.toString(),
+        targetRole,
+        candidateId: doc.candidateView?.candidateId || doc._id.toString() || 'cand_1792308629917',
       };
     }
   } catch {
@@ -95,10 +105,12 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
 
   return {
     growthReport: getNandiniReportForLang(chosenLang),
-    candidateName: 'Nandini',
+    candidateName: 'Nandini Perumal',
     candidateLanguage: chosenLang,
     isLiveDb: false,
     evalId: undefined,
+    targetRole: 'Product Management',
+    candidateId: 'cand_1792308629917',
   };
 }
 
@@ -107,53 +119,53 @@ export default async function CandidatePage({ searchParams }: CandidatePageProps
   const data = await getCandidateGrowthData(resolvedParams?.evalId, resolvedParams?.lang);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FD]">
-      <Navbar currentLanguage={data.candidateLanguage} />
+    <div className="min-h-screen flex flex-col bg-[#0B1120] text-slate-100 font-sans selection:bg-indigo-500/30">
+      <Navbar currentLanguage={data.candidateLanguage} theme="dark" />
 
-      {/* Top Breadcrumb & Actions */}
-      <div className="bg-white border-b border-gray-200">
+      {/* Top Breadcrumb & Status Navigation */}
+      <div className="bg-[#0B1120] border-b border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="text-gray-500 hover:text-[var(--ulipsu-indigo)] flex items-center gap-1 font-medium"
+              className="text-slate-400 hover:text-white flex items-center gap-1 font-medium transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Home</span>
             </Link>
-            <span className="text-gray-300">/</span>
-            <span className="font-semibold text-gray-800">Candidate Growth & Self-Discovery</span>
+            <span className="text-slate-600">/</span>
+            <span className="font-semibold text-slate-200">Candidate Growth &amp; Self-Discovery</span>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-              <span className="text-[11px] text-gray-500 px-2 font-medium">View in:</span>
+            <div className="flex items-center gap-1 bg-[#1E293B] border border-slate-700/80 p-1 rounded-lg">
+              <span className="text-[11px] text-slate-400 px-2 font-medium">View in:</span>
               <Link
                 href={data.evalId ? `/candidate?evalId=${data.evalId}&lang=en` : `/candidate?lang=en`}
-                className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                   data.candidateLanguage === 'en'
-                    ? 'bg-white shadow-xs text-[var(--ulipsu-indigo)]'
-                    : 'text-gray-600 hover:text-black'
+                    ? 'bg-sky-500 text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
                 English
               </Link>
               <Link
                 href={data.evalId ? `/candidate?evalId=${data.evalId}&lang=hi` : `/candidate?lang=hi`}
-                className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                   data.candidateLanguage === 'hi'
-                    ? 'bg-white shadow-xs text-[var(--ulipsu-indigo)]'
-                    : 'text-gray-600 hover:text-black'
+                    ? 'bg-sky-500 text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
                 हिन्दी
               </Link>
               <Link
                 href={data.evalId ? `/candidate?evalId=${data.evalId}&lang=kn` : `/candidate?lang=kn`}
-                className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                   data.candidateLanguage === 'kn'
-                    ? 'bg-white shadow-xs text-[var(--ulipsu-indigo)]'
-                    : 'text-gray-600 hover:text-black'
+                    ? 'bg-sky-500 text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
                 ಕನ್ನಡ
@@ -162,9 +174,9 @@ export default async function CandidatePage({ searchParams }: CandidatePageProps
 
             <Link
               href={data.evalId ? `/recruiter?evalId=${data.evalId}` : `/recruiter`}
-              className="text-xs font-semibold text-[var(--ulipsu-indigo)] hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 transition-colors"
             >
-              <UserCheck className="w-3.5 h-3.5 text-[var(--ulipsu-indigo)]" />
+              <UserCheck className="w-3.5 h-3.5" />
               <span>Switch to Recruiter View</span>
             </Link>
           </div>
@@ -172,15 +184,14 @@ export default async function CandidatePage({ searchParams }: CandidatePageProps
       </div>
 
       {/* Main Candidate Growth Report Content */}
-      <main className="flex-1 py-6">
+      <main className="flex-1 py-6 bg-[#0B1120]">
         <CandidateGrowthView
           growthReport={data.growthReport}
           candidateName={data.candidateName}
+          targetRole={data.targetRole}
+          candidateId={data.candidateId}
         />
       </main>
-
-      {/* Consistent Footer */}
-      <Footer />
     </div>
   );
 }

@@ -9,10 +9,75 @@ import { Globe, Shield, UserCheck, Sparkles, BookOpen } from 'lucide-react';
 interface NavbarProps {
   currentLanguage?: 'en' | 'hi' | 'kn';
   onLanguageChange?: (lang: 'en' | 'hi' | 'kn') => void;
+  theme?: 'light' | 'dark';
 }
 
-export function Navbar({ currentLanguage = 'en', onLanguageChange }: NavbarProps) {
+export function Navbar({ currentLanguage = 'en', onLanguageChange, theme = 'light' }: NavbarProps) {
   const pathname = usePathname();
+  const isDark = theme === 'dark';
+
+  if (isDark) {
+    return (
+      <header className="sticky top-0 z-50 bg-[#0B1120]/95 backdrop-blur-md border-b border-slate-800 shadow-sm text-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Brand Logo & Name */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 border border-indigo-400/30 flex items-center justify-center shadow-xs shrink-0">
+              <Globe className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 leading-none">
+                <span className="text-base font-bold tracking-tight text-white">
+                  Multilingual Assessment
+                </span>
+              </div>
+              <p className="text-[11px] font-medium text-slate-400 tracking-wide mt-1 leading-none">
+                Psychometric Assessment Platform
+              </p>
+            </div>
+          </Link>
+
+          {/* Engine Pill & Language & Nav */}
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2E1065]/70 border border-purple-500/40 text-purple-300 text-xs font-semibold shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+              <span>Hybrid AI + Local Matrix Engine</span>
+            </div>
+
+            {/* Language Selector Dropdown */}
+            <div className="flex items-center gap-1.5 bg-[#1E293B] border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+              <Globe className="w-3.5 h-3.5 text-sky-400" />
+              <span className="hidden sm:inline text-slate-400 text-[11px]">Language / ಭಾಷೆ / भाषा:</span>
+              <select
+                value={currentLanguage}
+                onChange={(e) => onLanguageChange && onLanguageChange(e.target.value as 'en' | 'hi' | 'kn')}
+                className="bg-transparent font-medium text-white focus:outline-none cursor-pointer"
+              >
+                <option value="en" className="bg-[#1E293B] text-white">🇬🇧 English</option>
+                <option value="hi" className="bg-[#1E293B] text-white">🇮🇳 हिन्दी</option>
+                <option value="kn" className="bg-[#1E293B] text-white">🇮🇳 ಕನ್ನಡ</option>
+              </select>
+            </div>
+
+            <nav className="flex items-center gap-2 text-xs font-medium">
+              <Link
+                href="/assessment"
+                className="text-slate-300 hover:text-white px-2.5 py-1 rounded-md transition-colors"
+              >
+                Assessment
+              </Link>
+              <Link
+                href="/recruiter"
+                className="hidden sm:inline-block text-slate-300 hover:text-white px-2.5 py-1 rounded-md transition-colors"
+              >
+                Recruiter View
+              </Link>
+            </nav>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[var(--ulipsu-border)] shadow-xs">

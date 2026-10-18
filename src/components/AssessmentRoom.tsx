@@ -684,7 +684,7 @@ export function AssessmentRoom({
 
       const data = await res.json();
       if (res.ok && data.success && data.evaluationId) {
-        router.push(`/recruiter?evalId=${data.evaluationId}`);
+        router.push(`/candidate?evalId=${data.evaluationId}`);
       } else {
         setValidationError(data.error || 'Failed to submit evaluation.');
         setIsSubmitting(false);

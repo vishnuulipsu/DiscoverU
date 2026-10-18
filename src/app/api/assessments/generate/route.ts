@@ -2,15 +2,25 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import { Assessment } from '@/models/Assessment';
 import { generateAssessmentWithGemini, GenerateAssessmentParams } from '@/lib/assessment-generator';
+import { handleApiError } from '@/lib/api-error';
 
 export async function POST(req: Request) {
   try {
-    const body: GenerateAssessmentParams = await req.json();
-    const { candidateName, currentRole, targetIndustry, testTrack, assessmentTrack, language } = body;
+    let body: GenerateAssessmentParams;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Malformed JSON payload.', code: 'INVALID_JSON' },
+        { status: 400 }
+      );
+    }
+
+    const { candidateName, currentRole, targetIndustry, testTrack, assessmentTrack, language } = body || {};
 
     if (!targetIndustry || !currentRole) {
       return NextResponse.json(
-        { success: false, error: 'Target industry and current role are required.' },
+        { success: false, error: 'Target industry and current role are required.', code: 'MISSING_PARAMETERS' },
         { status: 400 }
       );
     }
@@ -56,7 +66,6 @@ export async function POST(req: Request) {
       generatedByAi: generated.generatedByAi,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to generate tailored assessment';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return handleApiError(err, 'POST /api/assessments/generate');
   }
 }

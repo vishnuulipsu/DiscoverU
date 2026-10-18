@@ -16,6 +16,8 @@ import {
   HelpCircle,
   ShieldCheck,
   RotateCcw,
+  WifiOff,
+  Wifi,
   LayoutList,
   AlignLeft,
   User,
@@ -306,6 +308,89 @@ export function AssessmentRoom({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
+
+  // Online / Offline connectivity listener
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    if (typeof window !== 'undefined') {
+      setIsOffline(!navigator.onLine);
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
+  }, []);
+
+  // Check for auto-saved draft on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem('discoveru_assessment_draft_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const answeredCount = Object.values(parsed.answers || {}).filter(
+          (a: unknown) => {
+            const cast = a as IQuestionResponse | undefined;
+            return !!(cast?.selectedOptionId || cast?.writtenRationale);
+          }
+        ).length;
+        if (answeredCount > 0) {
+          setDraftNotice(`We found an unfinished assessment session with ${answeredCount} answered questions.`);
+        }
+      }
+    } catch {
+      // Non-fatal
+    }
+  }, []);
+
+  // Auto-save candidate responses to localStorage for session crash resilience
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const draft = {
+        answers,
+        candidateName,
+        candidateEmail,
+        currentIdx,
+        assessmentTrack,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem('discoveru_assessment_draft_v1', JSON.stringify(draft));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [answers, candidateName, candidateEmail, currentIdx, assessmentTrack]);
+
+  const handleRestoreDraft = () => {
+    try {
+      const saved = localStorage.getItem('discoveru_assessment_draft_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.answers) setAnswers(parsed.answers);
+        if (parsed.candidateName) setCandidateName(parsed.candidateName);
+        if (parsed.candidateEmail) setCandidateEmail(parsed.candidateEmail);
+        if (parsed.currentIdx !== undefined) setCurrentIdx(parsed.currentIdx);
+        setDraftNotice(null);
+      }
+    } catch {
+      setValidationError('Could not restore saved draft.');
+    }
+  };
+
+  const handleDiscardDraft = () => {
+    try {
+      localStorage.removeItem('discoveru_assessment_draft_v1');
+      setDraftNotice(null);
+    } catch {
+      // Non-fatal
+    }
+  };
 
   // Creative loader insight cycling
   useEffect(() => {
@@ -684,13 +769,22 @@ export function AssessmentRoom({
 
       const data = await res.json();
       if (res.ok && data.success && data.evaluationId) {
+        try {
+          localStorage.removeItem('discoveru_assessment_draft_v1');
+        } catch {
+          // Non-fatal
+        }
         router.push(`/candidate?evalId=${data.evaluationId}`);
       } else {
-        setValidationError(data.error || 'Failed to submit evaluation.');
+        const errMsg = data.error || 'Failed to submit evaluation.';
+        setSubmissionError(errMsg);
+        setValidationError(errMsg);
         setIsSubmitting(false);
       }
     } catch (err: unknown) {
-      setValidationError(err instanceof Error ? err.message : 'Submission failed.');
+      const errMsg = err instanceof Error ? err.message : 'Submission failed due to a network or server issue.';
+      setSubmissionError(errMsg);
+      setValidationError(errMsg);
       setIsSubmitting(false);
     }
   };
@@ -947,6 +1041,32 @@ export function AssessmentRoom({
                 <span>Prefill Demo Profile</span>
               </button>
             </div>
+
+            {/* Draft Found Banner */}
+            {draftNotice && (
+              <div className="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <RotateCcw className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span className="font-medium">{draftNotice}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleRestoreDraft}
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer shadow-xs"
+                  >
+                    Restore Progress
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-100 font-semibold text-xs cursor-pointer"
+                  >
+                    Start Fresh
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Validation Error Alert */}
             {validationError && (
@@ -1423,6 +1543,37 @@ export function AssessmentRoom({
           </div>
           <button onClick={() => setGenerationFeedback(null)} className="text-emerald-700 hover:text-emerald-900">
             <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* ================= OFFLINE WARNING BANNER ================= */}
+      {isOffline && (
+        <div className="mb-4 p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm font-semibold flex items-center gap-2.5 shadow-xs animate-in fade-in">
+          <WifiOff className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>You are currently offline. Your responses are auto-saved in this browser. Please reconnect to the internet before final submission.</span>
+        </div>
+      )}
+
+      {/* ================= SUBMISSION ERROR BANNER WITH RETRY ================= */}
+      {submissionError && (
+        <div className="mb-4 p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-950 text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md animate-in fade-in">
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-rose-950">Submission Could Not Complete</p>
+              <p className="text-xs text-rose-800 font-normal mt-0.5">{submissionError}</p>
+              <p className="text-[11px] text-emerald-800 font-medium mt-1">✓ All your answers remain saved safely in this session. You can retry submission now.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSubmitAssessment}
+            disabled={isSubmitting}
+            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm shrink-0 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 transition"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>{isSubmitting ? 'Retrying...' : 'Retry Submission'}</span>
           </button>
         </div>
       )}

@@ -6,6 +6,7 @@ import { CandidateGrowthView } from '@/components/CandidateGrowthView';
 import { getGroundedMockEvaluation } from '@/lib/gemini';
 import connectToDatabase from '@/lib/mongodb';
 import { EvaluationResult } from '@/models/EvaluationResult';
+import mongoose from 'mongoose';
 import { NANDINI_GROWTH_REPORT, NANDINI_GROWTH_REPORT_HI, NANDINI_GROWTH_REPORT_KN } from '@/lib/seed-data';
 import { ArrowLeft, UserCheck, Sparkles, BookOpen } from 'lucide-react';
 
@@ -25,7 +26,7 @@ async function getCandidateGrowthData(evalId?: string, requestedLang?: string) {
     return NANDINI_GROWTH_REPORT;
   };
 
-  if (evalId) {
+  if (evalId && mongoose.isValidObjectId(evalId)) {
     try {
       await connectToDatabase();
       const doc = await EvaluationResult.findById(evalId).lean();

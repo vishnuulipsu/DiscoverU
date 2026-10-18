@@ -5,6 +5,7 @@ import { Footer } from '@/components/Footer';
 import { RecruiterEvaluationView } from '@/components/RecruiterEvaluationView';
 import { getGroundedMockEvaluation } from '@/lib/gemini';
 import connectToDatabase from '@/lib/mongodb';
+import mongoose from 'mongoose';
 import { EvaluationResult } from '@/models/EvaluationResult';
 import { NANDINI_RECRUITER_EVALUATION } from '@/lib/seed-data';
 import { ArrowLeft, Sparkles, UserCheck, RefreshCw } from 'lucide-react';
@@ -16,7 +17,7 @@ interface RecruiterPageProps {
 }
 
 async function getEvaluationData(evalId?: string) {
-  if (evalId) {
+  if (evalId && mongoose.isValidObjectId(evalId)) {
     try {
       await connectToDatabase();
       const evalDoc = await EvaluationResult.findById(evalId).lean();

@@ -7,22 +7,50 @@ import { PromptVersion } from '@/models/PromptVersion';
 import mongoose from 'mongoose';
 import { SAMPLE_QUESTIONS } from '@/lib/seed-data';
 import { runGeminiEvaluation } from '@/lib/gemini';
+import { handleApiError } from '@/lib/api-error';
 
 export async function POST(req: Request) {
   try {
-    await connectToDatabase();
-    const body = await req.json();
-    const { candidateName, candidateEmail, languageSelected, answers, assessmentId, candidateProfile } = body;
-
-    if (!candidateName || !candidateEmail || !answers || !assessmentId) {
-      return NextResponse.json({ success: false, error: 'Missing required submission fields' }, { status: 400 });
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Malformed JSON payload.', code: 'INVALID_JSON' },
+        { status: 400 }
+      );
     }
+
+    const { candidateName, candidateEmail, languageSelected, answers, assessmentId, candidateProfile } = body || {};
+
+    if (!candidateName?.trim() || !candidateEmail?.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'Candidate name and email are required.', code: 'MISSING_CANDIDATE_INFO' },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(answers) || answers.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'At least one answered question is required.', code: 'MISSING_ANSWERS' },
+        { status: 400 }
+      );
+    }
+
+    if (!assessmentId) {
+      return NextResponse.json(
+        { success: false, error: 'Assessment identifier is required.', code: 'MISSING_ASSESSMENT_ID' },
+        { status: 400 }
+      );
+    }
+
+    await connectToDatabase();
 
     // Save initial Submission document
     const submission = await Submission.create({
       assessmentId,
-      candidateName,
-      candidateEmail,
+      candidateName: candidateName.trim(),
+      candidateEmail: candidateEmail.trim(),
       languageSelected: languageSelected || 'en',
       candidateProfile: candidateProfile || null,
       status: 'submitted',
@@ -40,7 +68,7 @@ export async function POST(req: Request) {
     }
 
     const questionsPool = assessment?.questions && assessment.questions.length > 0 ? assessment.questions : SAMPLE_QUESTIONS;
-    const roleTarget = assessment?.roleTarget || 'Senior Software Engineer / Tech Lead';
+    const roleTarget = assessment?.roleTarget || candidateProfile?.targetRoleField || 'Senior Software Engineer / Tech Lead';
     const assessmentVersion = assessment?.version || 'v1.0.0';
 
     // Retrieve active prompt versions from DB
@@ -56,7 +84,7 @@ export async function POST(req: Request) {
         isActive: true,
       });
     } catch {
-      // Ignore if prompt versions collection is empty
+      // Non-fatal if prompt versions collection is empty
     }
 
     // Map answers with scenario text
@@ -76,25 +104,31 @@ export async function POST(req: Request) {
     });
 
     // Run Gemini 3.1 evaluation pipeline
-    const evaluation = await runGeminiEvaluation(
-      {
-        candidateName,
-        candidateEmail,
-        candidateLanguage: languageSelected || 'en',
-        roleTarget,
-        assessmentVersion,
-        answers: enrichedAnswers,
-      },
-      activeRecruiterPrompt?.userPromptTemplate,
-      activeCandidatePrompt?.userPromptTemplate
-    );
+    let evaluation;
+    try {
+      evaluation = await runGeminiEvaluation(
+        {
+          candidateName: candidateName.trim(),
+          candidateEmail: candidateEmail.trim(),
+          candidateLanguage: languageSelected || 'en',
+          roleTarget,
+          assessmentVersion,
+          answers: enrichedAnswers,
+        },
+        activeRecruiterPrompt?.userPromptTemplate,
+        activeCandidatePrompt?.userPromptTemplate
+      );
+    } catch (evalErr) {
+      console.error('[Evaluation Pipeline Warning] runGeminiEvaluation failed, will rely on safe fallback:', evalErr);
+      throw evalErr;
+    }
 
     // Save EvaluationResult document
     const evalDoc = await EvaluationResult.create({
       submissionId: submission._id.toString(),
       assessmentId,
-      candidateName,
-      candidateEmail,
+      candidateName: candidateName.trim(),
+      candidateEmail: candidateEmail.trim(),
       candidateLanguage: languageSelected || 'en',
       candidateProfile: candidateProfile || null,
       modelUsed: evaluation.modelUsed,
@@ -112,8 +146,6 @@ export async function POST(req: Request) {
       submissionId: submission._id.toString(),
     });
   } catch (err: unknown) {
-    console.error('Submission processing error:', err);
-    const message = err instanceof Error ? err.message : 'Evaluation pipeline failed';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return handleApiError(err, 'POST /api/submissions');
   }
 }

@@ -1,6 +1,8 @@
 import { IDualPaneQuestion } from '@/models/Assessment';
 import { GoogleGenAI } from '@google/genai';
 import { buildProfessionalQuestions, buildStudentQuestions } from '@/lib/assessment-tracks';
+import fs from 'fs';
+import path from 'path';
 
 export interface GenerateAssessmentParams {
   candidateName: string;
@@ -347,6 +349,18 @@ export function buildIndustryAssessment(params: GenerateAssessmentParams): {
   };
 }
 
+function getMasterPromptGuidelines(): string {
+  try {
+    const promptPath = path.join(process.cwd(), 'prompts', 'DiscoverU_Master_Prompt_Multilingual_Simplification.txt');
+    if (fs.existsSync(promptPath)) {
+      return fs.readFileSync(promptPath, 'utf-8');
+    }
+  } catch (err) {
+    console.warn('Could not load DiscoverU master prompt file:', err);
+  }
+  return '';
+}
+
 export async function generateAssessmentWithGemini(params: GenerateAssessmentParams): Promise<{
   title: string;
   roleTarget: string;
@@ -369,7 +383,8 @@ export async function generateAssessmentWithGemini(params: GenerateAssessmentPar
   if (apiKey) {
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const prompt = `You are an expert Industrial Psychologist and Enterprise Situational Assessment Designer.
+      const masterGuidelines = getMasterPromptGuidelines();
+      const prompt = `${masterGuidelines ? `${masterGuidelines.slice(0, 3500)}\n\n---\n\n` : ''}You are an expert Industrial Psychologist and Enterprise Situational Assessment Designer for DiscoverU.
 Candidate Profile:
 - Name: ${params.candidateName || 'Candidate'}
 - Current Role / Background: ${params.currentRole}
@@ -377,9 +392,9 @@ Candidate Profile:
 - Test Track: ${params.testTrack} (${params.testTrack === 'crisis' ? 'Crisis Management & System Resilience (2 high-stakes dilemmas)' : params.testTrack === 'cross_functional' ? 'Stakeholder Alignment & Scope Negotiation (2 dilemmas)' : params.testTrack === 'governance' ? 'Enterprise Governance & Regulatory Agility (2 dilemmas)' : 'Full 360° Comprehensive Assessment (5 dilemmas across Problem Solving, Communication, Accountability, Adaptability, Prioritization)'})
 
 Task:
-Generate a tailored situational judgment assessment with realistic, nuanced workplace dilemmas. Each dilemma should challenge someone with background "${params.currentRole}" who wants to work in "${params.targetIndustry}".
+Generate a tailored situational judgment assessment with realistic, nuanced workplace dilemmas according to DiscoverU assessment rules. Each dilemma should challenge someone with background "${params.currentRole}" who wants to work in "${params.targetIndustry}".
 Each question MUST follow the dual-perspective design: an objective situational choice (4 options A, B, C, D) followed by a prompt requiring a structured written justification of trade-offs and rationale.
-Avoid trivial or obvious answers. Include trilingual translations (English, Hindi, Kannada) for global accessibility.
+Avoid trivial or obvious answers. Include trilingual translations (English, Hindi, Kannada) for global accessibility, with writtenPrompt and writtenPlaceholder fully populated in all three languages (en, hi, kn).
 
 Return ONLY a valid JSON object matching this schema:
 {
@@ -457,14 +472,36 @@ Return ONLY a valid JSON object matching this schema:
             const rawKey = (q.competencyKey || `competency_${idx + 1}`).toString().toLowerCase().trim().replace(/[\s-]+/g, '_');
             const normalizedKey = rawKey === 'prioritization' ? 'prioritisation' : rawKey;
             
+            const enContent = q.en || q;
+            const hiContent = q.hi || q.en || q;
+            const knContent = q.kn || q.en || q;
+
             return {
               questionId: q.questionId || `q${idx + 1}`,
               competencyKey: normalizedKey,
               competencyName: q.competencyName || 'Core Competency',
+              questionType: q.questionType || 'dual_pane',
+              category: q.category || 'dilemma',
+              subCategory: q.subCategory || '',
+              dimension: q.dimension || '',
+              isRationaleRequired: Boolean(q.isRationaleRequired),
+              isOptionalExplanation: q.isOptionalExplanation ?? !q.isRationaleRequired,
               idealEvidenceCriteria: q.idealEvidenceCriteria || 'Demonstrates structured analytical and behavioral trade-off reasoning.',
-              en: q.en || q,
-              hi: q.hi || q.en || q,
-              kn: q.kn || q.en || q,
+              en: {
+                ...enContent,
+                writtenPrompt: enContent.writtenPrompt || 'Explain why you chose this action. What trade-offs did you consider?',
+                writtenPlaceholder: enContent.writtenPlaceholder || 'Detail your reasoning and situational context...',
+              },
+              hi: {
+                ...hiContent,
+                writtenPrompt: hiContent.writtenPrompt || 'आपने यह विकल्प क्यों चुना? अपनी विचार प्रक्रिया साझा करें।',
+                writtenPlaceholder: hiContent.writtenPlaceholder || 'अपना तर्क और कार्ययोजना यहाँ लिखें...',
+              },
+              kn: {
+                ...knContent,
+                writtenPrompt: knContent.writtenPrompt || 'ನೀವು ಈ ಆಯ್ಕೆಯನ್ನು ಏಕೆ ಆರಿಸಿದ್ದೀರಿ? ನಿಮ್ಮ ನಿರ್ಧಾರವನ್ನು ವಿವರಿಸಿ.',
+                writtenPlaceholder: knContent.writtenPlaceholder || 'ನಿಮ್ಮ ವಿವರಣೆ ಮತ್ತು ಕಾರ್ಯತಂತ್ರವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ...',
+              },
             };
           });
 

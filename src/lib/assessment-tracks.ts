@@ -1110,7 +1110,66 @@ export function buildProfessionalQuestions(
     },
   ];
 
-  return [...oceanQuestions, ...starQuestions];
+  // Enrich OCEAN questions with dimension, mandatory/optional status, and localized behavioral reasoning prompts
+  const enrichedOceanQuestions: IDualPaneQuestion[] = oceanQuestions.map((q) => {
+    const dim = q.questionId.startsWith('ocean_o') ? 'O'
+      : q.questionId.startsWith('ocean_c') ? 'C'
+      : q.questionId.startsWith('ocean_e') ? 'E'
+      : q.questionId.startsWith('ocean_a') ? 'A'
+      : 'N';
+
+    // Exactly 1 question per dimension has mandatory Step 2 behavioural reasoning (6th question in each dimension)
+    const isRationaleRequired = q.questionId.endsWith('6');
+    const isOptionalExplanation = !isRationaleRequired;
+
+    const enPrompt = isRationaleRequired
+      ? `Mandatory Behavioral Reasoning (STAR): Think about your rating for "${q.en.title}". Describe a real experience that explains your response. Include what happened (Situation), what you needed to do (Task), what you personally did (Action), and what happened in the end (Result).`
+      : `Optional Context: Think about your rating for "${q.en.title}". You may optionally describe a real-world experience or reason that explains why you chose this rating.`;
+
+    const enPlaceholder = isRationaleRequired
+      ? 'Required: Detail what happened, your goal, what you personally did, and the outcome (at least 15 characters)...'
+      : 'Optional: Share a brief real-life example or reason explaining your rating...';
+
+    const hiPrompt = isRationaleRequired
+      ? `अनिवार्य व्यावहारिक अनुभव (STAR): "${q.hi.title}" पर अपनी रेटिंग पर विचार करें और एक वास्तविक अनुभव साझा करें (स्थिति, आपकी जिम्मेदारी, आपने क्या किया और क्या परिणाम हुआ)।`
+      : `वैकल्पिक संदर्भ: "${q.hi.title}" पर अपनी रेटिंग को स्पष्ट करने के लिए यदि चाहें तो एक संक्षिप्त वास्तविक उदाहरण या कारण साझा करें।`;
+
+    const hiPlaceholder = isRationaleRequired
+      ? 'अनिवार्य: अपने वास्तविक अनुभव और परिणाम का विवरण यहाँ लिखें (कम से कम 15 अक्षर)...'
+      : 'वैकल्पिक: अपनी रेटिंग के पीछे का संक्षिप्त कारण या उदाहरण यहाँ लिखें...';
+
+    const knPrompt = isRationaleRequired
+      ? `ಕಡ್ಡಾಯ ನೈಜ ಅನುಭವ ವಿವರಣೆ (STAR): "${q.kn.title}" ಆಯ್ಕೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ನಿಮ್ಮ ನೈಜ ಅನುಭವವನ್ನು ವಿವರಿಸಿ (ಸನ್ನಿವೇಶ, ನಿಮ್ಮ ಹೊಣೆಗಾರಿಕೆ, ನೀವು ತೆಗೆದುಕೊಂಡ ಕ್ರಮ ಮತ್ತು ಫಲಿತಾಂಶ).`
+      : `ಐಚ್ಛಿಕ ವಿವರಣೆ: "${q.kn.title}" ಆಯ್ಕೆಯನ್ನು ಬೆಂಬಲಿಸಲು ನೀವು ಸಂಕ್ಷಿಪ್ತ ನೈಜ ಉದಾಹರಣೆ ಅಥವಾ ವಿವರಣೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಬಹುದು.`;
+
+    const knPlaceholder = isRationaleRequired
+      ? 'ಕಡ್ಡಾಯ: ಸನ್ನಿವೇಶ, ನಿಮ್ಮ ಕಾರ್ಯ ಮತ್ತು ಅಂತಿಮ ಫಲಿತಾಂಶವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ (ಕನಿಷ್ಠ 15 ಅಕ್ಷರಗಳು)...'
+      : 'ಐಚ್ಛಿಕ: ನಿಮ್ಮ ರೇಟಿಂಗ್ ಅನ್ನು ಬೆಂಬಲಿಸುವ ಸಂಕ್ಷಿಪ್ತ ವಿವರವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ...';
+
+    return {
+      ...q,
+      dimension: dim as 'O' | 'C' | 'E' | 'A' | 'N',
+      isRationaleRequired,
+      isOptionalExplanation,
+      en: {
+        ...q.en,
+        writtenPrompt: q.en.writtenPrompt || enPrompt,
+        writtenPlaceholder: q.en.writtenPlaceholder || enPlaceholder,
+      },
+      hi: {
+        ...q.hi,
+        writtenPrompt: q.hi.writtenPrompt || hiPrompt,
+        writtenPlaceholder: q.hi.writtenPlaceholder || hiPlaceholder,
+      },
+      kn: {
+        ...q.kn,
+        writtenPrompt: q.kn.writtenPrompt || knPrompt,
+        writtenPlaceholder: q.kn.writtenPlaceholder || knPlaceholder,
+      },
+    };
+  });
+
+  return [...enrichedOceanQuestions, ...starQuestions];
 }
 
 // ============================================================================

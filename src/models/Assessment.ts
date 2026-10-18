@@ -25,7 +25,9 @@ export interface IDualPaneQuestion {
   questionType?: 'likert' | 'subjective_star' | 'option_explain' | 'mcq_dual';
   category?: 'ocean' | 'star' | 'mbti' | 'holland' | 'situational';
   subCategory?: string; // e.g. 'Openness', 'Conscientiousness', 'Situation', 'E vs I', 'Realistic'
+  dimension?: 'O' | 'C' | 'E' | 'A' | 'N';
   isOptionalExplanation?: boolean;
+  isRationaleRequired?: boolean;
   en: ILocalizedQuestionContent;
   hi: ILocalizedQuestionContent;
   kn: ILocalizedQuestionContent;
@@ -76,7 +78,9 @@ const DualPaneQuestionSchema = new Schema<IDualPaneQuestion>(
     questionType: { type: String, default: 'mcq_dual' },
     category: { type: String, default: '' },
     subCategory: { type: String, default: '' },
+    dimension: { type: String, default: '' },
     isOptionalExplanation: { type: Boolean, default: false },
+    isRationaleRequired: { type: Boolean, default: false },
     en: { type: LocalizedContentSchema, required: true },
     hi: { type: LocalizedContentSchema, required: true },
     kn: { type: LocalizedContentSchema, required: true },

@@ -454,10 +454,7 @@ export function AssessmentRoom({
           writtenRationale: '',
         }),
         selectedOptionId: optionId,
-        writtenRationale:
-          currentQ.questionType === 'likert'
-            ? selectedOpt?.text || `Likert Rating ${optionId}`
-            : prev[currentQ.questionId]?.writtenRationale || '',
+        writtenRationale: prev[currentQ.questionId]?.writtenRationale || '',
       },
     }));
   };
@@ -627,6 +624,13 @@ export function AssessmentRoom({
       if (!ans?.selectedOptionId) {
         setValidationError('Please select a rating on the scale from 1 to 5 to proceed.');
         return false;
+      }
+      if (currentQ.isRationaleRequired) {
+        const written = ans?.writtenRationale?.trim() || '';
+        if (!written || written.length < 15) {
+          setValidationError('This question requires a written justification or real-life example (at least 15 characters) before proceeding.');
+          return false;
+        }
       }
       setValidationError(null);
       return true;
@@ -1736,7 +1740,9 @@ export function AssessmentRoom({
               const ans = answers[q.questionId];
               let isAnswered = false;
               if (q.questionType === 'likert') {
-                isAnswered = !!ans?.selectedOptionId;
+                isAnswered = q.isRationaleRequired
+                  ? !!(ans?.selectedOptionId && ans?.writtenRationale?.trim() && ans.writtenRationale.trim().length >= 15)
+                  : !!ans?.selectedOptionId;
               } else if (q.questionType === 'subjective_star') {
                 isAnswered = !!(ans?.writtenRationale?.trim() || ans?.situation?.trim() || ans?.task?.trim() || ans?.action?.trim() || ans?.result?.trim());
               } else if (q.questionType === 'option_explain') {
@@ -1939,8 +1945,69 @@ export function AssessmentRoom({
             </div>
           </div>
 
+          {/* Step 2: Behavioral Reasoning & Justification */}
+          <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-800">
+                  {localizedContent?.writtenPrompt || 'Step 2: Behavioral Reasoning & Real-Life Example'}
+                </span>
+                {currentQ.isRationaleRequired ? (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-extrabold border border-rose-200">
+                    Required *
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold border border-slate-200">
+                    Optional
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] text-gray-500">
+                {currentQ.isRationaleRequired
+                  ? 'Mandatory justification for this dimension (min 15 chars)'
+                  : 'Optional: Provide context if you wish'}
+              </span>
+            </div>
+
+            <textarea
+              rows={3}
+              value={currentAnswer.writtenRationale || ''}
+              onChange={(e) => handleFreeformChange(e.target.value)}
+              placeholder={
+                localizedContent?.writtenPlaceholder ||
+                (currentQ.isRationaleRequired
+                  ? 'Briefly describe a specific real-world incident or past situation that demonstrates why you chose this rating (e.g. Situation, Action taken, Result)...'
+                  : 'Share any brief real-life example or context supporting your rating (optional)...')
+              }
+              className={`w-full p-3.5 rounded-xl border text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition resize-none ${
+                currentQ.isRationaleRequired && (!currentAnswer.writtenRationale || currentAnswer.writtenRationale.trim().length < 15)
+                  ? 'border-amber-300 bg-amber-50/20 focus:border-amber-500 focus:ring-amber-400/20'
+                  : 'border-gray-200 bg-white focus:border-[var(--ulipsu-indigo)] focus:ring-[var(--ulipsu-indigo)]/20'
+              }`}
+            />
+
+            <div className="flex items-center justify-between text-[11px] text-gray-500 px-1">
+              <span>
+                {currentQ.isRationaleRequired && (
+                  <span className={(!currentAnswer.writtenRationale || currentAnswer.writtenRationale.trim().length < 15) ? 'text-amber-700 font-semibold' : 'text-emerald-700 font-semibold flex items-center gap-1 inline-flex'}>
+                    {(!currentAnswer.writtenRationale || currentAnswer.writtenRationale.trim().length < 15) ? (
+                      `Minimum 15 characters needed (${currentAnswer.writtenRationale?.trim().length || 0}/15)`
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Justification requirement met ({currentAnswer.writtenRationale?.trim().length || 0} chars)
+                      </>
+                    )}
+                  </span>
+                )}
+              </span>
+              <span>
+                {currentAnswer.writtenRationale ? `${currentAnswer.writtenRationale.length} characters` : ''}
+              </span>
+            </div>
+          </div>
+
           <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
-            <span>Dimension: OCEAN Big Five</span>
+            <span>Dimension: OCEAN ({currentQ.dimension || currentQ.subCategory || 'Big Five'})</span>
             <span>Rubric: {currentQ.idealEvidenceCriteria}</span>
           </div>
         </div>
